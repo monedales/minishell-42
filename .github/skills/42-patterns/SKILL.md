@@ -109,13 +109,27 @@ typedef enum e_error
     ERR_INIT
 }   t_error;
 
-int handle_error(t_error err)
+int	handle_error(t_error error)
 {
-    if (err == ERR_ARGS)
-        write(2, "Error: Invalid arguments\n", 25);
-    else if (err == ERR_MALLOC)
-        write(2, "Error: Memory allocation failed\n", 32);
-    return (err);
+	static const char	*messages[] = {
+		NULL,
+		"Error\nInvalid number of arguments\n",
+		"Error\nArgument must be numeric only\n",
+		"Error\nArgument must be a positive integer\n",
+		"Error\nValue exceeds maximum (2147483647)\n",
+		"Error\nOne philosopher cannot eat (needs at least 2)\n",
+		"Error\nFailed to initialize global mutex\n",
+		"Error\nFailed to initialize fork mutex\n",
+		"Error\nMemory allocation failed\n",
+		"Error\nFailed to create philosopher thread\n",
+		"Error\nFailed to create monitor thread\n"
+	};
+
+	if (error > 0 && error < (int)(sizeof(messages) / sizeof(messages[0])))
+	{
+		printf("%s", messages[error]);
+	}
+	return (1);
 }
 ```
 
