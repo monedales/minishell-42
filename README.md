@@ -187,6 +187,7 @@ EOF
 ## 📚 Documentação
 
 - [LIBFT_SETUP.md](LIBFT_SETUP.md) - ⚙️ Como adicionar a libft ao projeto
+- [GIT_BRANCHES_GUIDE.md](GIT_BRANCHES_GUIDE.md) - 🌿 Guia completo de branches para trabalho em dupla
 - [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - Estrutura detalhada e divisão de tarefas
 - [PESSOA_A_GUIDE.md](PESSOA_A_GUIDE.md) - 🔵 Guia completo para Pessoa A (Parsing & Ambiente)
 - [PESSOA_B_GUIDE.md](PESSOA_B_GUIDE.md) - 🟢 Guia completo para Pessoa B (Execução & Sistema)
