@@ -1,11 +1,35 @@
-# Prerequisites
-*.d
+# Executables
+minishell
+*.out
+a.out
 
 # Object files
 *.o
-*.ko
-*.obj
-*.elf
+*.a
+obj/
+
+# Libft (se for link simbólico ou submódulo, ajustar conforme necessário)
+# libft/
+
+# MacOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Test files
+test
+tester/
+temp_*
+.heredoc_*
+
+# Logs
+*.log
+valgrind-out.txt
+
+# Prerequisites
+*.d
 
 # Linker output
 *.ilk
