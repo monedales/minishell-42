@@ -6,23 +6,21 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/09 17:53:49 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/09 18:07:13 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Cria um novo nó de variável de ambiente
+ * @brief Creates a new environment variable node
  * 
- * TODO: Implementar
- * - Alocar memória para t_env
- * - Duplicar key e value
- * - Inicializar next como NULL
+ * Allocates memory for a t_env node, duplicates key and value,
+ * and initializes prev and next pointers to NULL.
  * 
- * @param key Nome da variável
- * @param value Valor da variável
- * @return Novo nó ou NULL em caso de erro
+ * @param key Variable name
+ * @param value Variable value
+ * @return New node or NULL on error
  */
 static t_env	*create_env_node(char *key, char *value)
 {
@@ -50,14 +48,13 @@ static t_env	*create_env_node(char *key, char *value)
 }
 
 /**
- * @brief Adiciona nó ao final da lista de ambiente
+ * @brief Adds a node to the end of the environment list
  * 
- * TODO: Implementar
- * - Se lista vazia, new vira o head
- * - Senão, percorrer até o final e adicionar
+ * If the list is empty, the new node becomes the head.
+ * Otherwise, traverses to the end and appends the node.
  * 
- * @param head Ponteiro para o início da lista
- * @param new Novo nó a adicionar
+ * @param head Pointer to the head of the list
+ * @param new New node to add
  */
 static void	add_env_node(t_env **head, t_env *new)
 {
@@ -78,21 +75,17 @@ static void	add_env_node(t_env **head, t_env *new)
 }
 
 /**
- * @brief Separa uma string "KEY=VALUE" em key e value
+ * @brief Splits a "KEY=VALUE" string into key and value
  * 
- * TODO: Implementar parsing
- * - Encontrar o '='
- * - Extrair tudo antes como key
- * - Extrair tudo depois como value
+ * Finds the first '=' and extracts everything before it as key
+ * and everything after it as value.
  * 
- * EXEMPLO:
- * Input: "HOME=/Users/mona"
- * Output: key="HOME", value="/Users/mona"
+ * Example: "HOME=/Users/mona" -> key="HOME", value="/Users/mona"
  * 
- * @param env_str String no formato KEY=VALUE
- * @param key Ponteiro para armazenar a key
- * @param value Ponteiro para armazenar o value
- * @return SUCCESS ou ERROR
+ * @param env_str String in KEY=VALUE format
+ * @param key Pointer to store the key
+ * @param value Pointer to store the value
+ * @return SUCCESS or ERROR
  */
 static int	split_env_string(char *env_str, char **key, char **value)
 {
@@ -116,27 +109,13 @@ static int	split_env_string(char *env_str, char **key, char **value)
 }
 
 /**
- * @brief Inicializa a lista de ambiente a partir do envp
+ * @brief Initializes the environment list from envp
  * 
- * ESTRATÉGIA:
- * 1. Criar lista ligada vazia
- * 2. Para cada string em envp:
- *    - Separar em key=value
- *    - Criar nó t_env
- *    - Adicionar à lista
- * 3. Retornar o head da lista
+ * Iterates through the envp array, splits each string into
+ * key=value, creates a node and adds it to the linked list.
  * 
- * EXEMPLO:
- * envp[0] = "HOME=/Users/mona"
- * envp[1] = "PATH=/usr/bin:/bin"
- * envp[2] = "USER=mona"
- * envp[3] = NULL
- * 
- * Resultado:
- * [HOME=/Users/mona] -> [PATH=/usr/bin:/bin] -> [USER=mona] -> NULL
- * 
- * @param envp Array de strings do main
- * @return Lista ligada de ambiente ou NULL em caso de erro
+ * @param envp Array of strings from main
+ * @return Linked list of environment variables or NULL on error
  */
 t_env	*init_env(char **envp)
 {
@@ -168,14 +147,11 @@ t_env	*init_env(char **envp)
 }
 
 /**
- * @brief Libera toda a lista de ambiente
+ * @brief Frees the entire environment list
  * 
- * TODO: Implementar
- * - Percorrer lista
- * - Dar free em key e value
- * - Dar free no nó
+ * Traverses the list, freeing key, value and the node itself.
  * 
- * @param env Lista de ambiente
+ * @param env Environment list
  */
 void	free_env(t_env *env)
 {
