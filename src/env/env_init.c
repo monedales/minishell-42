@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_init.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/09 17:53:49 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,27 @@
  */
 static t_env	*create_env_node(char *key, char *value)
 {
-	// TODO: Implementar
-	(void)key;
-	(void)value;
-	return (NULL);
+	t_env	*node;
+
+	node = malloc(sizeof(t_env));
+	if (!node)
+		return (NULL);
+	node->key = ft_strdup(key);
+	if (!node->key)
+	{
+		free(node);
+		return (NULL);
+	}
+	node->value = ft_strdup(value);
+	if (!node->value)
+	{
+		free(node->key);
+		return (NULL);
+	}
+	node->prev = NULL;
+	node->next = NULL;
+
+	return (node);
 }
 
 /**
@@ -44,9 +61,20 @@ static t_env	*create_env_node(char *key, char *value)
  */
 static void	add_env_node(t_env **head, t_env *new)
 {
-	// TODO: Implementar
-	(void)head;
-	(void)new;
+	t_env	*current;
+
+	if (!head || !new)
+		return ;
+	if (*head == NULL)
+	{
+		*head = new;
+		return ;
+	}
+	current = *head;
+	while (current->next != NULL)
+		current = current->next;
+	current->next = new;
+	new->prev = current;
 }
 
 /**
@@ -68,11 +96,23 @@ static void	add_env_node(t_env **head, t_env *new)
  */
 static int	split_env_string(char *env_str, char **key, char **value)
 {
-	// TODO: Implementar
-	(void)env_str;
-	(void)key;
-	(void)value;
-	return (ERROR);
+	int		pos;
+	char	*equal;
+
+	equal = ft_strchr(env_str, '=');
+	if (!equal)
+		return (ERROR);
+	pos = equal - env_str;
+	*key = ft_substr(env_str, 0, pos);
+	if (!*key)
+		return (ERROR);
+	*value = ft_strdup(equal + 1);
+	if (!*value)
+	{
+		free(*key);
+		return (ERROR);
+	}
+	return (SUCCESS);
 }
 
 /**
@@ -100,9 +140,31 @@ static int	split_env_string(char *env_str, char **key, char **value)
  */
 t_env	*init_env(char **envp)
 {
-	// TODO: Implementar
-	(void)envp;
-	return (NULL);
+	t_env	*head;
+	t_env	*node;
+	char	*key;
+	char	*value;
+	int		idx;
+
+	if (!envp)
+		return (NULL);
+	head = NULL;
+	key = NULL;
+	value = NULL;
+	idx = 0;
+	while (envp[idx])
+	{
+		if (split_env_string(envp[idx], &key, &value) == SUCCESS)
+		{
+			node = create_env_node(key, value);
+			free(key);
+			free(value);
+			if (node)
+				add_env_node(&head, node);
+		}
+		idx++;
+	}
+	return (head);
 }
 
 /**
@@ -117,6 +179,14 @@ t_env	*init_env(char **envp)
  */
 void	free_env(t_env *env)
 {
-	// TODO: Implementar
-	(void)env;
+	t_env	*tmp;
+
+	while (env)
+	{
+		tmp = env->next;
+		free(env->key);
+		free(env->value);
+		free(env);
+		env = tmp;
+	}
 }
