@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_utils.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/09 18:39:27 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,15 @@
  */
 static int	count_env_vars(t_env *env)
 {
-	// TODO: Implementar
-	(void)env;
-	return (0);
+	int	count;
+
+	count = 0;
+	while (env)
+	{
+		count++;
+		env = env->next;
+	}
+	return (count);
 }
 
 /**
@@ -50,9 +56,28 @@ static int	count_env_vars(t_env *env)
  */
 char	**env_to_array(t_env *env)
 {
-	// TODO: Implementar
-	(void)env;
-	return (NULL);
+	int		count;
+	int		idx;
+	char	**arr;
+	char	*tmp;
+
+	idx = 0;
+	count = count_env_vars(env);
+	arr = malloc(sizeof(char *) * (count + 1));
+	if (!arr)
+		return (NULL);
+	while (env)
+	{
+		tmp = ft_strjoin(env->key, "=");
+		arr[idx] = ft_strjoin(tmp, env->value);
+		free(tmp);
+		if (!arr[idx])
+			return (NULL);
+		env = env->next;
+		idx++;
+	}
+	arr[count] = NULL;
+	return (arr);
 }
 
 /**
@@ -68,6 +93,9 @@ char	**env_to_array(t_env *env)
  */
 void	print_env(t_env *env)
 {
-	// TODO: Implementar
-	(void)env;
+	while (env)
+	{
+		printf("%s=%s\n", env->key, env->value);
+		env = env->next;
+	}
 }
