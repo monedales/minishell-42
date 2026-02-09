@@ -6,19 +6,17 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/09 18:39:27 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/09 18:40:53 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Conta o número de variáveis na lista
+ * @brief Counts the number of variables in the environment list
  * 
- * TODO: Implementar contagem
- * 
- * @param env Lista de ambiente
- * @return Número de variáveis
+ * @param env Environment list
+ * @return Number of variables
  */
 static int	count_env_vars(t_env *env)
 {
@@ -34,25 +32,13 @@ static int	count_env_vars(t_env *env)
 }
 
 /**
- * @brief Converte lista ligada de ambiente em array de strings
+ * @brief Converts the environment linked list to an array of strings
  * 
- * TODO: Implementar conversão
- * - Contar número de variáveis
- * - Alocar array com tamanho suficiente (+1 para NULL)
- * - Para cada nó, criar string "KEY=VALUE"
- * - Adicionar ao array
- * - Terminar com NULL
+ * Creates a NULL-terminated array of "KEY=VALUE" strings.
+ * Used by execve, which requires a char **envp in the traditional format.
  * 
- * EXEMPLO:
- * Lista: [HOME=/Users/mona] -> [USER=mona] -> NULL
- * 
- * Array: ["HOME=/Users/mona", "USER=mona", NULL]
- * 
- * IMPORTANTE: Esta função é usada pelo execve!
- * O execve precisa de um char **envp no formato tradicional.
- * 
- * @param env Lista de ambiente
- * @return Array de strings (precisa dar free depois)
+ * @param env Environment list
+ * @return Array of strings (must be freed after use) or NULL on error
  */
 char	**env_to_array(t_env *env)
 {
@@ -81,15 +67,12 @@ char	**env_to_array(t_env *env)
 }
 
 /**
- * @brief Imprime todas as variáveis de ambiente
+ * @brief Prints all environment variables
  * 
- * TODO: Implementar impressão
- * - Percorrer lista
- * - Para cada nó, imprimir "KEY=VALUE\n"
+ * Traverses the list and prints each variable in "KEY=VALUE" format.
+ * Used by the env builtin command.
  * 
- * USADO PELO BUILTIN ENV!
- * 
- * @param env Lista de ambiente
+ * @param env Environment list
  */
 void	print_env(t_env *env)
 {
