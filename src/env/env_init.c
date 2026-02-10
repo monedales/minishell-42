@@ -6,7 +6,7 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/09 18:07:13 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/10 19:50:38 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
  * @param value Variable value
  * @return New node or NULL on error
  */
-static t_env	*create_env_node(char *key, char *value)
+t_env	*create_env_node(char *key, char *value)
 {
 	t_env	*node;
 
@@ -56,7 +56,7 @@ static t_env	*create_env_node(char *key, char *value)
  * @param head Pointer to the head of the list
  * @param new New node to add
  */
-static void	add_env_node(t_env **head, t_env *new)
+void	add_env_node(t_env **head, t_env *new)
 {
 	t_env	*current;
 
