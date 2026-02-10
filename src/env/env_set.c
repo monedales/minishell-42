@@ -6,18 +6,16 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/10 20:14:18 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/10 20:18:04 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Update the value of an existing variable
+ * @brief Updates the value of an existing environment variable
  * 
- * TODO: Implementar
- * - Dar free no value antigo
- * - Duplicar o novo value
+ * Frees the old value and duplicates the new one.
  * 
  * @param node Node to be updated
  * @param new_value New value for existing variable
@@ -33,24 +31,16 @@ static int	update_env_node(t_env *node, const char *new_value)
 }
 
 /**
- * @brief Define ou atualiza uma variável de ambiente
+ * @brief Sets or updates an environment variable
  * 
- * TODO: Implementar lógica completa
- * - Buscar se a key já existe na lista
- * - Se existe: atualizar o value
- * - Se não existe: criar novo nó e adicionar à lista
+ * Searches for the key in the list. If found, updates the value.
+ * If not found, creates a new node and adds it to the list.
+ * Used by the export builtin command.
  * 
- * EXEMPLOS:
- * set_env_value(&env, "VAR", "42")
- *   -> Se VAR existe: atualiza valor para "42"
- *   -> Se VAR não existe: cria novo nó VAR=42
- * 
- * USADO PELO BUILTIN EXPORT!
- * 
- * @param env Ponteiro para o início da lista
- * @param key Nome da variável
- * @param value Valor da variável
- * @return SUCCESS ou ERROR
+ * @param env Pointer to the head of the list
+ * @param key Variable name
+ * @param value Variable value
+ * @return SUCCESS or ERROR
  */
 int	set_env_value(t_env **env, const char *key, const char *value)
 {

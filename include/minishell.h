@@ -6,7 +6,7 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/09 16:30:33 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/10 19:50:54 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,6 +135,8 @@ int			set_env_value(t_env **env, const char *key, const char *value);
 int			unset_env_value(t_env **env, const char *key);
 void		free_env(t_env *env);
 char		**env_to_array(t_env *env);
+void		add_env_node(t_env **head, t_env *new);
+t_env		*create_env_node(char *key, char *value);
 
 /* ========================================================================== */
 /*                          EXECUTION (Pessoa B)                              */
