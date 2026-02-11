@@ -6,7 +6,7 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/10 23:01:01 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/11 01:27:53 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,19 @@ static t_token	*create_token(t_token_type type, char *value)
  */
 static void	add_token(t_token **head, t_token *new_token)
 {
-	// TODO: Implementar
-	(void)head;
-	(void)new_token;
+	t_token	*current;
+
+	if (!head || !new_token)
+		return ;
+	if (*head == NULL)
+	{
+		*head = new_token;
+		return ;
+	}
+	current = *head;
+	while (current->next)
+		current = current->next;
+	current->next = new_token;
 }
 
 /**
@@ -72,10 +82,30 @@ static void	add_token(t_token **head, t_token *new_token)
  */
 static t_token_type	identify_token_type(char *str, int *i)
 {
-	// TODO: Implementar
-	(void)str;
-	(void)i;
-	return (TOKEN_WORD);
+	if (str[*i] == '|')
+		return (TOKEN_PIPE);
+	else if (str[*i] == '<')
+	{
+		if (str[*i + 1] == '<')
+		{
+			(*i)++;
+			return (TOKEN_REDIR_HEREDOC);
+		}
+		else
+			return (TOKEN_REDIR_IN);
+	}
+	else if (str[*i] == '>')
+	{
+		if (str[*i + 1] == '>')
+		{
+			(*i)++;
+			return (TOKEN_REDIR_APPEND);
+		}
+		else
+			return (TOKEN_REDIR_OUT);
+	}
+	else
+		return (TOKEN_WORD);
 }
 
 /**
@@ -135,6 +165,13 @@ t_token	*lexer(char *input)
  */
 void	free_tokens(t_token *tokens)
 {
-	// TODO: Implementar
-	(void)tokens;
+	t_token	*tmp;
+
+	while (tokens)
+	{
+		tmp = tokens->next;
+		free(tokens->value);
+		free(tokens);
+		tokens = tmp;
+	}
 }
