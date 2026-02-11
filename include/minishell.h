@@ -25,7 +25,7 @@
 # include <errno.h>
 # include <readline/readline.h>
 # include <readline/history.h>
-# include "libraries/libft/libft.h"
+# include "../libraries/libft/libft.h"
 
 /* ========================================================================== */
 /*                                  DEFINES                                   */

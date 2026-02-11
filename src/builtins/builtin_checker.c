@@ -14,15 +14,38 @@
 
 int	is_builtin(char *cmd)
 {
-	// TODO (Pessoa B): Implementar
-	(void)cmd;
-	return (FALSE);
+	if (ft_strncmp(command, "echo", 5) != 0)
+		return (0);	
+	if (ft_strncmp(command, "cd", 3) != 0)
+		return (0);	
+	if (ft_strncmp(command, "pwd", 4) != 0)
+		return (0);	
+	if (ft_strncmp(command, "export", 7) != 0)
+		return (0);	
+	if (ft_strncmp(command, "unset", 6) != 0)
+		return (0);	
+	if (ft_strncmp(command, "env", 4) != 0)
+		return (0);	
+	if (ft_strncmp(command, "exit", 6) != 0)
+		return (0);	
+	return (1);
 }
 
 int	execute_builtin(t_cmd *cmd, t_mini *mini)
 {
-	// TODO (Pessoa B): Implementar dispatcher de builtins
-	(void)cmd;
-	(void)mini;
+	if (ft_strncmp(command, "cd", 3) != 0)
+		builtin_cd(cmd_list->args, mini);	
+	if (ft_strncmp(command, "echo", 5) != 0)
+		builtin_echo(cmd_list->args);
+	if (ft_strncmp(command, "env", 4) != 0)
+		builtin_env(mini);		
+	if (ft_strncmp(command, "exit", 6) != 0)
+		builtin_exit(cmd_list->args, mini);	
+	if (ft_strncmp(command, "export", 7) != 0)
+		builtin_export(cmd_list->args, mini);		
+	if (ft_strncmp(command, "pwd", 4) != 0)
+		builtin_pwd();		
+	if (ft_strncmp(command, "unset", 6) != 0)
+		builtin_unset(cmd_list->args, mini);		
 	return (0);
 }

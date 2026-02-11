@@ -23,11 +23,28 @@
  * @param cmd_list Lista de comandos a executar
  * @param mini Estrutura principal
  * @return Exit status do último comando
+
+ 
  */
+	typedef struct s_cmd
+	{
+		char			**args;		// comando + argumentos [cmd, arg1, arg2, NULL]
+		t_redir			*redirs;	// lista de redirecionamentos
+		struct s_cmd	*next;		// próximo comando (após pipe)
+	}	t_cmd;
+
+
 int	execute_cmd_list(t_cmd *cmd_list, t_mini *mini)
 {
-	// TODO: Implementar
-	(void)cmd_list;
-	(void)mini;
+	char	*command;
+
+	command = cmd_list->args[0];
+	if (is_builtin(command) == 1)
+		execute_builtin(cmd_list, command);
+	else if (command && cmd_list->next == NULL)
+		execute_simple_cmd(cmd_list, mini);
+	else
+		execute_pipeline(cmd_list, mini)
+
 	return (0);
 }
