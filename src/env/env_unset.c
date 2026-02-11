@@ -6,31 +6,22 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/10 20:53:09 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/10 21:08:46 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Remove uma variável de ambiente da lista
+ * @brief Removes an environment variable from the list
  * 
- * TODO: Implementar remoção de nó em lista ligada
- * - Buscar o nó com a key especificada
- * - Ajustar os ponteiros (cuidado com head!)
- * - Dar free em key, value e no nó
+ * Searches for the node with the specified key, adjusts
+ * prev/next pointers and frees the node.
+ * Used by the unset builtin command.
  * 
- * CASOS:
- * 1. Remover o primeiro nó (head)
- * 2. Remover nó do meio
- * 3. Remover último nó
- * 4. Key não existe (não fazer nada)
- * 
- * USADO PELO BUILTIN UNSET!
- * 
- * @param env Ponteiro para o início da lista
- * @param key Nome da variável a remover
- * @return SUCCESS se removeu, ERROR se não encontrou
+ * @param env Pointer to the head of the list
+ * @param key Variable name to remove
+ * @return SUCCESS if removed, ERROR if not found
  */
 int	unset_env_value(t_env **env, const char *key)
 {
