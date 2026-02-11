@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: mona <mona@student.42.fr>                  +#+  +:+       +#+         #
+#    By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/21 00:00:00 by mona              #+#    #+#              #
-#    Updated: 2026/01/21 21:02:13 by mona             ###   ########.fr        #
+#    Updated: 2026/02/11 01:52:25 by maria-ol         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -47,7 +47,8 @@ MAIN_SRC = main.c
 PARSING_SRC = lexer.c \
               expander.c \
               parser.c \
-              quotes.c
+              quotes.c \
+			  tokens.c
 
 # Environment (Pessoa A)
 ENV_SRC = env_init.c \

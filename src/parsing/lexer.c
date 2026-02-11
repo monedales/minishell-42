@@ -6,66 +6,11 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/11 01:27:53 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/11 02:39:09 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-
-/**
- * @brief Cria um novo token
- * 
- * TODO: Implementar criação de token com malloc
- * - Alocar memória para t_token
- * - Inicializar type e value
- * - Inicializar next como NULL
- * 
- * @param type Tipo do token
- * @param value Valor do token (duplicar string)
- * @return Novo token ou NULL em caso de erro
- */
-static t_token	*create_token(t_token_type type, char *value)
-{
-	t_token	*token;
-
-	token = malloc(sizeof(t_token));
-	if (!token)
-		return (NULL);
-	token->type = type;
-	token->value = ft_strdup(value);
-	if (!token->value)
-	{
-		free(token);
-		return (NULL);
-	}
-	token->next = NULL;
-	return (token);
-}
-
-/**
- * @brief Adiciona token ao final da lista
- * 
- * TODO: Implementar adição de token à lista ligada
- * 
- * @param head Ponteiro para o início da lista
- * @param new_token Token a ser adicionado
- */
-static void	add_token(t_token **head, t_token *new_token)
-{
-	t_token	*current;
-
-	if (!head || !new_token)
-		return ;
-	if (*head == NULL)
-	{
-		*head = new_token;
-		return ;
-	}
-	current = *head;
-	while (current->next)
-		current = current->next;
-	current->next = new_token;
-}
 
 /**
  * @brief Identifica o tipo de token baseado no caractere
@@ -108,6 +53,12 @@ static t_token_type	identify_token_type(char *str, int *i)
 		return (TOKEN_WORD);
 }
 
+static int	is_delimiter(char c)
+{
+	return (c == ' ' || c == '\t' || c == '|'
+		|| c == '<' || c == '>');
+}
+
 /**
  * @brief Extrai uma palavra (TOKEN_WORD) respeitando aspas
  * 
@@ -122,10 +73,26 @@ static t_token_type	identify_token_type(char *str, int *i)
  */
 static char	*extract_word(char *str, int *i)
 {
-	// TODO: Implementar
-	(void)str;
-	(void)i;
-	return (NULL);
+	int		start;
+	int		in_single;
+	int		in_double;
+	char	*word;
+
+	start = *i;
+	in_single = 0;
+	in_double = 0;
+	while (str[*i] && (in_single || in_double || !is_delimiter(str[*i])))
+	{
+		if (str[*i] == '\'' && !in_double)
+			in_single = !in_single;
+		else if (str[*i] == '"' && !in_single)
+			in_double = !in_double;
+		(*i)++;
+	}
+	word = ft_substr(str, start, *i - start);
+	if (!word)
+		return (NULL);
+	return (word);
 }
 
 /**
@@ -148,30 +115,45 @@ static char	*extract_word(char *str, int *i)
  */
 t_token	*lexer(char *input)
 {
-	// TODO: Implementar lógica completa do lexer
-	(void)input;
-	return (NULL);
-}
+	t_token			*head;
+	t_token			*token;
+	t_token_type	type;
+	char			*value;
+	int				i;
 
-/**
- * @brief Libera toda a lista de tokens
- * 
- * TODO: Implementar free recursivo ou iterativo
- * - Percorrer a lista
- * - Dar free no value de cada token
- * - Dar free no próprio token
- * 
- * @param tokens Cabeça da lista de tokens
- */
-void	free_tokens(t_token *tokens)
-{
-	t_token	*tmp;
-
-	while (tokens)
+	if (!input)
+		return (NULL);
+	head = NULL;
+	i = 0;
+	while (input[i])
 	{
-		tmp = tokens->next;
-		free(tokens->value);
-		free(tokens);
-		tokens = tmp;
+		while (input[i] == ' ' || input[i] == '\t')
+			i++;
+		if (!input[i])
+			break ;
+		type = identify_token_type(input, &i);
+		if (type != TOKEN_WORD)
+		{
+			token = create_token(type, NULL);
+			i++;
+		}
+		else
+		{
+			value = extract_word(input, &i);
+			if (!value)
+			{
+				free_tokens(head);
+				return (NULL);
+			}
+			token = create_token(type, value);
+			free(value);
+		}
+		if (!token)
+		{
+			free_tokens(head);
+			return (NULL);
+		}
+		add_token(&head, token);
 	}
+	return (head);
 }

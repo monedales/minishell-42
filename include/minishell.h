@@ -6,7 +6,7 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/10 19:50:54 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/11 01:46:49 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,8 @@ typedef struct s_mini
 // Lexer - Tokenização
 t_token		*lexer(char *input);
 void		free_tokens(t_token *tokens);
+t_token		*create_token(t_token_type type, char *value);
+void		add_token(t_token **head, t_token *new_token);
 
 // Expander - Expansão de variáveis
 void		expand_tokens(t_token *tokens, t_mini *mini);
