@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_unset.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/10 20:53:09 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,28 @@
  */
 int	unset_env_value(t_env **env, const char *key)
 {
-	// TODO: Implementar
-	(void)env;
-	(void)key;
+	t_env	*current;
+
+	if (!env || !*env || !key)
+		return (ERROR);
+	current = *env;
+	while (current)
+	{
+		if (ft_strlen(current->key) == ft_strlen(key)
+			&& ft_strncmp(current->key, key, ft_strlen(key)) == 0)
+		{
+			if (current->prev == NULL)
+				*env = current->next;
+			else
+				current->prev->next = current->next;
+			if (current->next)
+				current->next->prev = current->prev;
+			free(current->key);
+			free(current->value);
+			free(current);
+			return (SUCCESS);
+		}	
+		current = current->next;
+	}
 	return (ERROR);
 }
