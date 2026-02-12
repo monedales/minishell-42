@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+         #
+#    By: mona <mona@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/21 00:00:00 by mona              #+#    #+#              #
-#    Updated: 2026/02/11 01:52:25 by maria-ol         ###   ########.fr        #
+#    Updated: 2026/02/12 17:45:51 by mona             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror -g
 
 # Libft
-LIBFT_DIR = libft
+LIBFT_DIR = libraries/libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 INCLUDES = -I include -I $(LIBFT_DIR)
@@ -95,6 +95,11 @@ UTILS_OBJ = $(addprefix $(OBJ_DIR)/utils/, $(UTILS_SRC:.c=.o))
 
 ALL_OBJ = $(MAIN_OBJ) $(PARSING_OBJ) $(ENV_OBJ) $(EXEC_OBJ) \
           $(BUILTIN_OBJ) $(SIGNALS_OBJ) $(UTILS_OBJ)
+
+# Minimal objects for testing env and lexer only
+TEST_SRC = test_main.c
+TEST_OBJ = $(addprefix $(OBJ_DIR)/, $(TEST_SRC:.c=.o))
+TEST_ENV_OBJ = $(TEST_OBJ) $(ENV_OBJ) $(addprefix $(OBJ_DIR)/parsing/, lexer.o tokens.o)
 
 # ============================================================================ #
 #                                  RULES                                       #
@@ -183,4 +188,10 @@ valgrind: $(NAME)
 	@echo "🔍 Running valgrind..."
 	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
 
-.PHONY: all clean fclean re norm test valgrind
+# Target para testar apenas env (para desenvolvimento incremental)
+test_env: $(LIBFT) $(TEST_ENV_OBJ)
+	@echo "🔗 Linking test_env..."
+	@$(CC) $(CFLAGS) $(TEST_ENV_OBJ) $(LIBS) -o test_env
+	@echo "✅ test_env created! Run with: ./test_env"
+
+.PHONY: all clean fclean re norm test valgrind test_env
