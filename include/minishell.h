@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/11 01:46:49 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/12 17:45:51 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 # include <errno.h>
 # include <readline/readline.h>
 # include <readline/history.h>
-# include "libraries/libft/libft.h"
+# include "libft.h"
 
 /* ========================================================================== */
 /*                                  DEFINES                                   */
@@ -138,7 +138,7 @@ int			unset_env_value(t_env **env, const char *key);
 void		free_env(t_env *env);
 char		**env_to_array(t_env *env);
 void		add_env_node(t_env **head, t_env *new);
-t_env		*create_env_node(char *key, char *value);
+t_env		*create_env_node(const char *key, const char *value);
 
 /* ========================================================================== */
 /*                          EXECUTION (Pessoa B)                              */

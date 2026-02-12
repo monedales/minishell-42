@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   tokens.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 01:44:43 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/11 01:47:27 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/12 17:48:13 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,12 +32,10 @@ t_token	*create_token(t_token_type type, char *value)
 	if (!token)
 		return (NULL);
 	token->type = type;
-	token->value = ft_strdup(value);
-	if (!token->value)
-	{
-		free(token);
-		return (NULL);
-	}
+	if (value)
+		token->value = ft_strdup(value);
+	else
+		token->value = NULL;
 	token->next = NULL;
 	return (token);
 }
