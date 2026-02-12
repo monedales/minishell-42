@@ -6,23 +6,21 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 01:44:43 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/12 17:48:13 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/12 18:05:36 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Cria um novo token
+ * @brief Creates a new token node
  * 
- * TODO: Implementar criação de token com malloc
- * - Alocar memória para t_token
- * - Inicializar type e value
- * - Inicializar next como NULL
+ * Allocates a t_token, sets its type and duplicates the value
+ * string (if provided). Initializes next pointer to NULL.
  * 
- * @param type Tipo do token
- * @param value Valor do token (duplicar string)
- * @return Novo token ou NULL em caso de erro
+ * @param type Token type (WORD, PIPE, REDIR, etc.)
+ * @param value Token string value, or NULL for operators
+ * @return New token, or NULL on allocation failure
  */
 t_token	*create_token(t_token_type type, char *value)
 {
@@ -41,12 +39,13 @@ t_token	*create_token(t_token_type type, char *value)
 }
 
 /**
- * @brief Adiciona token ao final da lista
+ * @brief Appends a token to the end of the linked list
  * 
- * TODO: Implementar adição de token à lista ligada
+ * If the list is empty, the new token becomes the head.
+ * Otherwise, traverses to the last node and appends it.
  * 
- * @param head Ponteiro para o início da lista
- * @param new_token Token a ser adicionado
+ * @param head Pointer to the head of the token list
+ * @param new_token Token to append
  */
 void	add_token(t_token **head, t_token *new_token)
 {
@@ -66,14 +65,12 @@ void	add_token(t_token **head, t_token *new_token)
 }
 
 /**
- * @brief Libera toda a lista de tokens
+ * @brief Frees the entire token linked list
  * 
- * TODO: Implementar free recursivo ou iterativo
- * - Percorrer a lista
- * - Dar free no value de cada token
- * - Dar free no próprio token
+ * Iterates through the list, freeing the value string
+ * and the node itself for each token.
  * 
- * @param tokens Cabeça da lista de tokens
+ * @param tokens Head of the token list
  */
 void	free_tokens(t_token *tokens)
 {

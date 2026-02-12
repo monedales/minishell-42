@@ -3,27 +3,27 @@
 /*                                                        :::      ::::::::   */
 /*   lexer.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/11 02:39:09 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/12 18:04:03 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Identifica o tipo de token baseado no caractere
+ * @brief Identifies the token type based on the current character
  * 
- * TODO: Implementar identificação de:
- * - '|' -> TOKEN_PIPE
- * - '<' -> TOKEN_REDIR_IN ou TOKEN_REDIR_HEREDOC (se '<<')
- * - '>' -> TOKEN_REDIR_OUT ou TOKEN_REDIR_APPEND (se '>>')
- * - outros -> TOKEN_WORD
+ * Checks for operator characters and returns the corresponding type:
+ * - '|'  -> TOKEN_PIPE
+ * - '<'  -> TOKEN_REDIR_IN or TOKEN_REDIR_HEREDOC ('<<')
+ * - '>'  -> TOKEN_REDIR_OUT or TOKEN_REDIR_APPEND ('>>')
+ * - else -> TOKEN_WORD
  * 
- * @param str String atual
- * @param i Índice atual
- * @return Tipo de token identificado
+ * @param str Input string
+ * @param i Pointer to current index (incremented for double operators)
+ * @return The identified token type
  */
 static t_token_type	identify_token_type(char *str, int *i)
 {
@@ -53,6 +53,14 @@ static t_token_type	identify_token_type(char *str, int *i)
 		return (TOKEN_WORD);
 }
 
+/**
+ * @brief Checks if a character is a token delimiter
+ * 
+ * Delimiters are whitespace, pipe and redirection characters.
+ * 
+ * @param c Character to check
+ * @return 1 if delimiter, 0 otherwise
+ */
 static int	is_delimiter(char c)
 {
 	return (c == ' ' || c == '\t' || c == '|'
@@ -60,16 +68,14 @@ static int	is_delimiter(char c)
 }
 
 /**
- * @brief Extrai uma palavra (TOKEN_WORD) respeitando aspas
+ * @brief Extracts a word token from the input string
  * 
- * TODO: Implementar extração de palavra
- * - Enquanto não encontrar espaço, pipe ou redirecionamento
- * - Respeitar aspas (não parar em espaços dentro de aspas)
- * - Usar máquina de estados para rastrear se está dentro de aspas
+ * Reads characters until a delimiter is found, while respecting
+ * single and double quotes (delimiters inside quotes are ignored).
  * 
- * @param str String de input
- * @param i Ponteiro para índice atual (será atualizado)
- * @return String com a palavra extraída
+ * @param str Input string
+ * @param i Pointer to current index (updated after extraction)
+ * @return Newly allocated string with the extracted word, or NULL
  */
 static char	*extract_word(char *str, int *i)
 {
@@ -96,30 +102,53 @@ static char	*extract_word(char *str, int *i)
 }
 
 /**
- * @brief Tokeniza a string de input
+ * @brief Creates the next token from the current position
  * 
- * ESTRATÉGIA:
- * 1. Percorrer a string caractere por caractere
- * 2. Ignorar espaços
- * 3. Identificar operadores (|, <, >, <<, >>)
- * 4. Extrair palavras (respeitando aspas)
- * 5. Criar tokens e adicionar à lista
+ * Identifies the token type and creates either an operator token
+ * (with NULL value) or a word token (with extracted string value).
  * 
- * EXEMPLO:
- * Input:  echo "hello world" | grep hello > out.txt
- * Output: [WORD:echo] [WORD:hello world] [PIPE] [WORD:grep] 
- *         [WORD:hello] [REDIR_OUT] [WORD:out.txt]
+ * @param input Input string
+ * @param i Pointer to current index (updated after tokenization)
+ * @return New token, or NULL on allocation failure
+ */
+static t_token	*next_token(char *input, int *i)
+{
+	t_token_type	type;
+	t_token			*token;
+	char			*value;
+
+	type = identify_token_type(input, i);
+	if (type != TOKEN_WORD)
+	{
+		token = create_token(type, NULL);
+		(*i)++;
+	}
+	else
+	{
+		value = extract_word(input, i);
+		if (!value)
+			return (NULL);
+		token = create_token(type, value);
+		free(value);
+	}
+	return (token);
+}
+
+/**
+ * @brief Tokenizes the input string into a linked list of tokens
  * 
- * @param input String lida pelo readline
- * @return Lista ligada de tokens ou NULL em caso de erro
+ * Iterates through the input, skipping whitespace and creating tokens
+ * for each word or operator found. Handles pipes, redirections,
+ * and quoted strings.
+ * 
+ * @param input Raw input string from readline
+ * @return Linked list of tokens, or NULL on error or empty input
  */
 t_token	*lexer(char *input)
 {
-	t_token			*head;
-	t_token			*token;
-	t_token_type	type;
-	char			*value;
-	int				i;
+	t_token	*head;
+	t_token	*token;
+	int		i;
 
 	if (!input)
 		return (NULL);
@@ -131,23 +160,7 @@ t_token	*lexer(char *input)
 			i++;
 		if (!input[i])
 			break ;
-		type = identify_token_type(input, &i);
-		if (type != TOKEN_WORD)
-		{
-			token = create_token(type, NULL);
-			i++;
-		}
-		else
-		{
-			value = extract_word(input, &i);
-			if (!value)
-			{
-				free_tokens(head);
-				return (NULL);
-			}
-			token = create_token(type, value);
-			free(value);
-		}
+		token = next_token(input, &i);
 		if (!token)
 		{
 			free_tokens(head);
