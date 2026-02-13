@@ -6,12 +6,22 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/13 17:45:46 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/13 18:50:59 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
+/**
+ * @brief Updates the quote state based on the current character
+ *
+ * Toggles between quote states (NONE, SINGLE, DOUBLE) when encountering
+ * delimiter quotes. Single quotes are ignored inside double quotes and
+ * vice versa.
+ *
+ * @param c Current character
+ * @param state Pointer to the current quote state
+ */
 static void	update_quote_state(char c, t_quote_state *state)
 {
 	if (c == '"' && *state == QUOTE_NONE)
@@ -25,24 +35,15 @@ static void	update_quote_state(char c, t_quote_state *state)
 }
 
 /**
- * @brief Identifica se um caractere em certa posição está dentro de aspas
+ * @brief Identifies if a character at a certain position is inside quotes
  *
- * TODO: Implementar máquina de estados
- * - Percorrer string do início até 'pos'
- * - Rastrear estado atual (NONE, SINGLE, DOUBLE)
- * - Aspas dentro de outras aspas não mudam o estado
+ * Traverses the string from the beginning to 'pos' tracking the quote state.
+ * Quotes inside other quotes do not change the state.
  *
- * EXEMPLOS:
- * "echo 'hello world'"
- *       ^  (pos=6) -> QUOTE_SINGLE
- *
- * "echo \"hello 'world'\""
- *              ^  (pos=13) -> QUOTE_DOUBLE (aspas simples ignoradas)
- *
- * @param str String completa
- * @param pos Posição a verificar
- * @param state Ponteiro para armazenar o estado atual
- * @return TRUE se estiver quotado, FALSE caso contrário
+ * @param str Complete string
+ * @param pos Position to check
+ * @param state Pointer to store the current state
+ * @return TRUE if quoted, FALSE otherwise
  */
 int	is_in_quotes(char *str, int pos, t_quote_state *state)
 {
@@ -59,24 +60,14 @@ int	is_in_quotes(char *str, int pos, t_quote_state *state)
 }
 
 /**
- * @brief Remove aspas de uma string
+ * @brief Removes quotes from a string
  *
- * TODO: Implementar remoção
- * - Percorrer string rastreando estado de quotes
- * - Copiar caracteres para nova string, exceto as aspas
- * - Manter o conteúdo dentro das aspas intacto
+ * Traverses the string tracking quote state and copies characters
+ * to a new string, except delimiter quotes. Content inside quotes
+ * is kept intact. This function is called AFTER expansion.
  *
- * EXEMPLOS:
- * Input:  "hello"       -> Output: hello
- * Input:  'hello'       -> Output: hello
- * Input:  "hel'lo"      -> Output: hel'lo
- * Input:  'hel"lo'      -> Output: hel"lo
- * Input:  "hello" world -> Output: hello world
- *
- * ATENÇÃO: Esta função é chamada DEPOIS da expansão!
- *
- * @param str String com aspas
- * @return Nova string sem aspas (precisa dar free depois)
+ * @param str String with quotes
+ * @return New string without quotes (must be freed after use)
  */
 char	*remove_quotes(char *str)
 {
@@ -108,17 +99,10 @@ char	*remove_quotes(char *str)
 }
 
 /**
- * @brief Verifica se há aspas não fechadas
+ * @brief Checks if there are unclosed quotes
  *
- * TODO: Implementar validação
- * - Rastrear abertura e fechamento de aspas
- * - Retornar erro se houver aspas desbalanceadas
- *
- * EXEMPLOS:
- * Input: "hello world"  -> OK
- * Input: 'hello world'  -> OK
- * Input: "hello world   -> ERRO (não fechado)
- * Input: 'hello" world' -> OK (aspas duplas dentro de simples)
+ * Tracks opening and closing of quotes and returns an error
+ * if there are unbalanced quotes.
  *
  * @param str String to be validated
  * @return TRUE if valid, FALSE if there's a mistake
