@@ -6,7 +6,7 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/13 16:58:35 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/13 19:21:19 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,7 @@ typedef struct s_cmd
 {
 	char			**args;		// comando + argumentos [cmd, arg1, arg2, NULL]
 	t_redir			*redirs;	// lista de redirecionamentos
+	pid_t			pid;
 	struct s_cmd	*next;		// próximo comando (após pipe)
 }	t_cmd;
 
@@ -126,6 +127,7 @@ void		free_cmd_list(t_cmd *cmd_list);
 // Quote handling
 char		*remove_quotes(char *str);
 int			is_in_quotes(char *str, int pos, t_quote_state *state);
+int			validate_quotes(char *str);
 
 /* ========================================================================== */
 /*                           ENVIRONMENT (Pessoa A)                           */
