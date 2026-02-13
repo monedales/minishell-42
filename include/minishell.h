@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/12 17:45:51 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/13 16:58:35 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 # include <errno.h>
 # include <readline/readline.h>
 # include <readline/history.h>
-# include "libft.h"
+# include "libraries/libft/libft.h"
 
 /* ========================================================================== */
 /*                                  DEFINES                                   */
