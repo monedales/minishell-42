@@ -6,7 +6,7 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/13 20:09:23 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/13 22:01:23 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,48 @@ static int	validate_syntax(t_token *tokens)
 	// TODO: Implementar
 	(void)tokens;
 	return (TRUE);
+}
+
+/**
+ * @brief Adds an argument to the arguments array
+ *
+ * Reallocates the args array to fit one more element and adds the new
+ * argument while keeping the array NULL-terminated.
+ *
+ * EXAMPLE:
+ * Before: ["ls", NULL]
+ * After: ["ls", "-la", NULL]
+ *
+ * @param cmd Current command
+ * @param arg Argument to add
+ * @return SUCCESS or ERROR
+ */
+int	add_arg_to_cmd(t_cmd *cmd, char *arg)
+{
+	char	**new_args;
+	int		i;
+	int		j;
+
+	i = count_args(cmd->args);
+	new_args = malloc(sizeof(char *) * (i + 2));
+	if (!new_args)
+		return (ERROR);
+	j = 0;
+	while (j < i)
+	{
+		new_args[j] = cmd->args[j];
+		j++;
+	}
+	new_args[i] = ft_strdup(arg);
+	if (!new_args[i])
+	{
+		free(new_args);
+		return (ERROR);
+	}
+	new_args[i + 1] = NULL;
+	free(cmd->args);
+	cmd->args = new_args;
+	return (SUCCESS);
 }
 
 /**

@@ -6,14 +6,16 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/13 00:00:00 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/13 20:11:25 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/13 22:01:03 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Creates a new command node with initialized fields
+ * @brief Creates a new command node
+ * 
+ * Creates a new command node with initialized fields
  *
  * @return New command or NULL if allocation fails
  */
@@ -68,32 +70,39 @@ void	add_cmd(t_cmd **head, t_cmd *new)
  */
 t_redir	*create_redir_node(t_token_type type, char *file)
 {
-	(void)type;
-	(void)file;
-	return (NULL);
+	t_redir	*redir;
+
+	redir = malloc(sizeof(t_redir));
+	if (!redir)
+		return (NULL);
+	redir->file = ft_strdup(file);
+	if (!redir->file)
+	{
+		free(redir);
+		return (NULL);
+	}
+	redir->type = type;
+	redir->next = NULL;
+	return (redir);
 }
 
 /**
- * @brief Adds an argument to the arguments array
+ * @brief Counts the number of arguments in an array
  *
- * TODO: Implementar
- * - Reallocate args array to fit one more element
- * - Add the new argument
- * - Keep array NULL-terminated
- *
- * EXAMPLE:
- * Before: ["ls", NULL]
- * After: ["ls", "-la", NULL]
- *
- * @param cmd Current command
- * @param arg Argument to add
- * @return SUCCESS or ERROR
+ * @param args Array of arguments
+ * @return Number of arguments (excluding NULL)
  */
-int	add_arg_to_cmd(t_cmd *cmd, char *arg)
+int	count_args(char **args)
 {
-	(void)cmd;
-	(void)arg;
-	return (ERROR);
+	int	i;
+
+	i = 0;
+	if (args)
+	{
+		while (args[i])
+			i++;
+	}
+	return (i);
 }
 
 /**
@@ -107,6 +116,17 @@ int	add_arg_to_cmd(t_cmd *cmd, char *arg)
  */
 void	add_redir_to_cmd(t_cmd *cmd, t_redir *redir)
 {
-	(void)cmd;
-	(void)redir;
+	t_redir	*current;
+
+	if (!cmd || !redir)
+		return ;
+	if (cmd->redirs == NULL)
+	{
+		cmd->redirs = redir;
+		return ;
+	}
+	current = cmd->redirs;
+	while (current->next)
+		current = current->next;
+	current->next = redir;
 }
