@@ -6,21 +6,19 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/13 00:00:00 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/14 14:03:26 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 14:04:35 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Frees the redirection list
+ * @brief Frees the redirection list.
  *
- * TODO: Implementar
- * - Iterate through list
- * - Free file
- * - Free node
+ * Iterates through the linked list of redirections,
+ * freeing the file string and the node itself.
  *
- * @param redirs Redirection list
+ * @param redirs Head of the redirection linked list.
  */
 void	free_redirs(t_redir *redirs)
 {
@@ -37,16 +35,13 @@ void	free_redirs(t_redir *redirs)
 }
 
 /**
- * @brief Frees the entire command list
+ * @brief Frees the entire command list.
  *
- * TODO: Implementar
- * - Iterate through command list
- * - For each command:
- *   - Free args array (each string + the array)
- *   - Free redirection list
- *   - Free the command node
+ * Iterates through the linked list of commands. For each node,
+ * frees every string in the args array, the array itself,
+ * the redirection list via free_redirs, and the node.
  *
- * @param cmd_list Command list
+ * @param cmd_list Head of the command linked list.
  */
 void	free_cmd_list(t_cmd *cmd_list)
 {
