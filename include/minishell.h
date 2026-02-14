@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/13 19:21:19 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/14 14:29:42 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,22 @@ typedef enum e_quote_state
 	QUOTE_SINGLE,
 	QUOTE_DOUBLE
 }	t_quote_state;
+
+// Error types
+typedef enum e_error
+{
+	ERR_NONE,
+	ERR_SYNTAX,
+	ERR_CMD_NOT_FOUND,
+	ERR_NO_FILE,
+	ERR_PERMISSION,
+	ERR_MALLOC,
+	ERR_TOO_MANY_ARGS,
+	ERR_NUM_REQUIRED,
+	ERR_NOT_VALID_ID,
+	ERR_HOME_NOT_SET,
+	ERR_OLDPWD_NOT_SET
+}	t_error;
 
 /* ========================================================================== */
 /*                                 STRUCTURES                                 */
@@ -184,7 +200,7 @@ void		free_split(char **split);
 void		safe_free(void **ptr);
 
 // Error handling
-void		print_error(char *msg);
-void		exit_error(char *msg, int exit_code);
+int			handle_error(t_error error, char *cmd, char *detail);
+void		exit_error(t_error error, char *cmd, char *detail, int code);
 
 #endif

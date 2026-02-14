@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 14:29:42 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,7 @@ int	main(int argc, char **argv, char **envp)
 	// Setup
 	if (init_minishell(&mini, envp) == ERROR)
 	{
-		print_error("Failed to initialize minishell");
+		handle_error(ERR_MALLOC, NULL, NULL);
 		return (EXIT_FAILURE);
 	}
 	
