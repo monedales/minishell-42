@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/14 14:29:42 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 17:00:56 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 # include <errno.h>
 # include <readline/readline.h>
 # include <readline/history.h>
-# include "libraries/libft/libft.h"
+# include "libft.h"
 
 /* ========================================================================== */
 /*                                  DEFINES                                   */
@@ -138,6 +138,13 @@ void		expand_tokens(t_token *tokens, t_mini *mini);
 
 // Parser - Construção da árvore de comandos
 t_cmd		*parser(t_token *tokens);
+t_cmd		*create_cmd_node(void);
+void		add_cmd(t_cmd **head, t_cmd *new);
+t_redir		*create_redir_node(t_token_type type, char *file);
+t_redir		*create_redir_node(t_token_type type, char *file);
+int			count_args(char **args);
+void		add_redir_to_cmd(t_cmd *cmd, t_redir *redir);
+void		free_redirs(t_redir *redirs);
 void		free_cmd_list(t_cmd *cmd_list);
 
 // Quote handling

@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+         #
+#    By: mona <mona@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/21 00:00:00 by mona              #+#    #+#              #
-#    Updated: 2026/02/13 20:11:25 by maria-ol         ###   ########.fr        #
+#    Updated: 2026/02/14 17:19:07 by mona             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -101,7 +101,7 @@ ALL_OBJ = $(MAIN_OBJ) $(PARSING_OBJ) $(ENV_OBJ) $(EXEC_OBJ) \
 # Minimal objects for testing env and lexer only
 TEST_SRC = test_main.c
 TEST_OBJ = $(addprefix $(OBJ_DIR)/, $(TEST_SRC:.c=.o))
-TEST_ENV_OBJ = $(TEST_OBJ) $(ENV_OBJ) $(addprefix $(OBJ_DIR)/parsing/, lexer.o tokens.o)
+TEST_ENV_OBJ = $(TEST_OBJ) $(ENV_OBJ) $(UTILS_OBJ) $(addprefix $(OBJ_DIR)/parsing/, lexer.o tokens.o parser.o parser_utils.o parser_free.o quotes.o)
 
 # ============================================================================ #
 #                                  RULES                                       #
@@ -118,45 +118,49 @@ $(NAME): $(LIBFT) $(ALL_OBJ)
 	@$(CC) $(CFLAGS) $(ALL_OBJ) $(LIBS) -o $(NAME)
 	@echo "✅ $(NAME) created successfully!"
 
-# Main
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+# Diretórios necessários
+OBJ_SUBDIRS = $(OBJ_DIR)/parsing $(OBJ_DIR)/env $(OBJ_DIR)/execution $(OBJ_DIR)/builtins $(OBJ_DIR)/signals $(OBJ_DIR)/utils
+
+# Garante que todos os subdiretórios existem antes de compilar qualquer objeto
+.PRECIOUS: $(OBJ_SUBDIRS)
+$(OBJ_SUBDIRS):
+	@mkdir -p $@
+
+$(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
+
+# Main
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Parsing
-$(OBJ_DIR)/parsing/%.o: $(PARSING_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/parsing
+$(OBJ_DIR)/parsing/%.o: $(PARSING_DIR)/%.c | $(OBJ_DIR)/parsing
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Environment
-$(OBJ_DIR)/env/%.o: $(ENV_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/env
+$(OBJ_DIR)/env/%.o: $(ENV_DIR)/%.c | $(OBJ_DIR)/env
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Execution
-$(OBJ_DIR)/execution/%.o: $(EXEC_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/execution
+$(OBJ_DIR)/execution/%.o: $(EXEC_DIR)/%.c | $(OBJ_DIR)/execution
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Builtins
-$(OBJ_DIR)/builtins/%.o: $(BUILTIN_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/builtins
+$(OBJ_DIR)/builtins/%.o: $(BUILTIN_DIR)/%.c | $(OBJ_DIR)/builtins
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Signals
-$(OBJ_DIR)/signals/%.o: $(SIGNALS_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/signals
+$(OBJ_DIR)/signals/%.o: $(SIGNALS_DIR)/%.c | $(OBJ_DIR)/signals
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Utils
-$(OBJ_DIR)/utils/%.o: $(UTILS_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/utils
+$(OBJ_DIR)/utils/%.o: $(UTILS_DIR)/%.c | $(OBJ_DIR)/utils
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 

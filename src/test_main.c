@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/12 17:48:13 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 17:00:24 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,13 +112,61 @@ static void	test_lexer(void)
 	printf("========== LEXER OK ==========\n\n");
 }
 
+static void	test_parser(void)
+{
+	t_token *tokens;
+	t_cmd *cmd_list;
+	t_cmd *cmd;
+	t_redir *redir;
+	char *test_inputs[] = {
+		"ls -la",
+		"cat < file.txt | wc > out.txt",
+		"echo hello | grep h > out.txt",
+		"ls | grep test | wc",
+		NULL
+	};
+	int i, j;
+
+	printf("\n========== TESTANDO PARSER =========\n\n");
+	i = 0;
+	while (test_inputs[i])
+	{
+		printf("Input: \"%s\"\n", test_inputs[i]);
+		tokens = lexer(test_inputs[i]);
+		cmd_list = parser(tokens);
+		cmd = cmd_list;
+		while (cmd)
+		{
+			printf("Comando:\n");
+			j = 0;
+			while (cmd->args && cmd->args[j])
+			{
+				printf("  arg[%d]: %s\n", j, cmd->args[j]);
+				j++;
+			}
+			redir = cmd->redirs;
+			while (redir)
+			{
+				printf("  redir: tipo=%d, arquivo=%s\n", redir->type, redir->file);
+				redir = redir->next;
+			}
+			cmd = cmd->next;
+		}
+		free_cmd_list(cmd_list);
+		free_tokens(tokens);
+		printf("\n");
+		i++;
+	}
+	printf("========== PARSER OK =========\n\n");
+}
+
 int	main(int argc, char **argv, char **envp)
 {
 	t_mini	mini;
 
 	(void)argc;
 	(void)argv;
-	printf("\n🧪 MINISHELL - Testes de ENV e LEXER 🧪\n");
+	printf("\n🧪 MINISHELL - Testes de ENV, LEXER e PARSER 🧪\n");
 	printf("==========================================\n");
 
 	// Inicializar ambiente
@@ -136,6 +184,9 @@ int	main(int argc, char **argv, char **envp)
 
 	// Testar lexer
 	test_lexer();
+
+	// Testar parser
+	test_parser();
 
 	// Cleanup
 	free_env(mini.env);
