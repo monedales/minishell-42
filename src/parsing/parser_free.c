@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser_free.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/13 00:00:00 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/13 20:11:25 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/14 14:03:26 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,16 @@
  */
 void	free_redirs(t_redir *redirs)
 {
-	(void)redirs;
+	t_redir	*tmp;
+
+	while (redirs != NULL)
+	{
+		tmp = redirs->next;
+		free(redirs->file);
+		free(redirs);
+		redirs = tmp;
+	}
+	
 }
 
 /**
@@ -41,5 +50,24 @@ void	free_redirs(t_redir *redirs)
  */
 void	free_cmd_list(t_cmd *cmd_list)
 {
-	(void)cmd_list;
+	t_cmd	*tmp;
+	int		i;
+
+	while (cmd_list != NULL)
+	{
+		tmp = cmd_list->next;
+		if (cmd_list->args)
+		{
+			i = 0;
+			while (cmd_list->args[i])
+			{
+				free(cmd_list->args[i]);
+				i++;
+			}
+			free(cmd_list->args);
+		}
+		free_redirs(cmd_list->redirs);
+		free(cmd_list);
+		cmd_list = tmp;
+	}
 }
