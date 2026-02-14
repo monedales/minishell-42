@@ -6,18 +6,20 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/13 00:00:00 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/13 22:01:03 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/13 22:06:20 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Creates a new command node
- * 
- * Creates a new command node with initialized fields
+ * @brief Creates a new command node with initialized fields
  *
- * @return New command or NULL if allocation fails
+ * Allocates memory for a new command structure and initializes all fields
+ * to their default values (NULL for pointers, 0 for pid). Used when
+ * starting to parse a new command in the pipeline.
+ *
+ * @return Pointer to new command node, or NULL if allocation fails
  */
 t_cmd	*create_cmd_node(void)
 {
@@ -36,8 +38,12 @@ t_cmd	*create_cmd_node(void)
 /**
  * @brief Adds a command node to the end of the command list
  *
+ * Traverses the command list to find the last node and appends the new
+ * command. If the list is empty, the new command becomes the head.
+ * Used to build the pipeline by linking commands separated by pipes.
+ *
  * @param head Pointer to the head of the command list
- * @param new Command node to add
+ * @param new Command node to add to the end
  */
 void	add_cmd(t_cmd **head, t_cmd *new)
 {
@@ -59,14 +65,13 @@ void	add_cmd(t_cmd **head, t_cmd *new)
 /**
  * @brief Creates a new redirection node
  *
- * TODO: Implementar
- * - Allocate memory for t_redir
- * - Initialize type and file
- * - Initialize next as NULL
+ * Allocates memory for a new redirection structure and duplicates the
+ * filename string. The redirection type can be input (<), output (>),
+ * append (>>), or heredoc (<<). Used when parsing redirection tokens.
  *
- * @param type Type of redirection
- * @param file File name
- * @return New redirection or NULL on error
+ * @param type Type of redirection (TOKEN_REDIR_IN/OUT/APPEND/HEREDOC)
+ * @param file Filename for the redirection
+ * @return Pointer to new redirection node, or NULL if allocation fails
  */
 t_redir	*create_redir_node(t_token_type type, char *file)
 {
@@ -87,10 +92,14 @@ t_redir	*create_redir_node(t_token_type type, char *file)
 }
 
 /**
- * @brief Counts the number of arguments in an array
+ * @brief Counts the number of arguments in a NULL-terminated array
  *
- * @param args Array of arguments
- * @return Number of arguments (excluding NULL)
+ * Iterates through the array of strings and counts elements until
+ * reaching the NULL terminator. Used to determine the size needed
+ * when reallocating the arguments array.
+ *
+ * @param args NULL-terminated array of string pointers
+ * @return Number of arguments (excluding the NULL terminator)
  */
 int	count_args(char **args)
 {
@@ -106,13 +115,15 @@ int	count_args(char **args)
 }
 
 /**
- * @brief Adds a redirection to the list
+ * @brief Adds a redirection to the end of the redirections list
  *
- * TODO: Implementar
- * - Add to the end of redirections list
+ * Traverses the command's redirection list to find the last node and
+ * appends the new redirection. If the list is empty, the new redirection
+ * becomes the first. Multiple redirections can be chained for the same
+ * command (e.g., "< in.txt > out.txt").
  *
- * @param cmd Current command
- * @param redir Redirection to add
+ * @param cmd Current command structure
+ * @param redir Redirection node to add to the list
  */
 void	add_redir_to_cmd(t_cmd *cmd, t_redir *redir)
 {
