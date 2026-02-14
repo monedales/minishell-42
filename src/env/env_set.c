@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_set.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/10 20:18:04 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/14 17:38:18 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ int	set_env_value(t_env **env, const char *key, const char *value)
 		{
 			update_env_node(current, value);
 			return (SUCCESS);
-		}	
+		}
 		current = current->next;
 	}
 	node = create_env_node(key, value);

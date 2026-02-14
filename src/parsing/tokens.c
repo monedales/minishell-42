@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/11 01:44:43 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/12 18:05:36 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 17:29:03 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,4 +83,27 @@ void	free_tokens(t_token *tokens)
 		free(tokens);
 		tokens = tmp;
 	}
+}
+
+/**
+ * @brief Counts the number of arguments in a NULL-terminated array
+ *
+ * Iterates through the array of strings and counts elements until
+ * reaching the NULL terminator. Used to determine the size needed
+ * when reallocating the arguments array.
+ *
+ * @param args NULL-terminated array of string pointers
+ * @return Number of arguments (excluding the NULL terminator)
+ */
+int	count_args(char **args)
+{
+	int	i;
+
+	i = 0;
+	if (args)
+	{
+		while (args[i])
+			i++;
+	}
+	return (i);
 }

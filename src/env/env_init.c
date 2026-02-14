@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/12 17:45:51 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 17:38:34 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ t_env	*create_env_node(const char *key, const char *value)
 	}
 	node->prev = NULL;
 	node->next = NULL;
-
 	return (node);
 }
 

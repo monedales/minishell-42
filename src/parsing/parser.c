@@ -6,12 +6,22 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/14 17:05:01 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 17:37:17 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
+/**
+ * @brief Checks for syntax errors related to pipes in the token list.
+ *
+ * Detects if a pipe is at the end of the input or if two pipes appear 
+ * consecutively.
+ * Prints a syntax error message if an error is found.
+ *
+ * @param current The current token to check.
+ * @return TRUE if a pipe error is found, otherwise FALSE.
+ */
 static int	is_pipe_error(t_token *current)
 {
 	if (current->type == TOKEN_PIPE)
@@ -25,19 +35,29 @@ static int	is_pipe_error(t_token *current)
 	return (FALSE);
 }
 
-static int	is_redir_error(t_token *current)
+/**
+ * @brief Checks for syntax errors related to redirections in the token list.
+ *
+ * Detects if a redirection is at the end of the input or not followed by a 
+ * word token.
+ * Prints a syntax error message if an error is found.
+ *
+ * @param current The current token to check.
+ * @return TRUE if a redirection error is found, otherwise FALSE.
+ */
+static int	is_redir_error(t_token *curr)
 {
-	if (current->type == TOKEN_REDIR_IN || current->type == TOKEN_REDIR_OUT
-		|| current->type == TOKEN_REDIR_APPEND || current->type == TOKEN_REDIR_HEREDOC)
+	if (curr->type == TKN_REDIR_IN || curr->type == TKN_REDIR_OUT
+		|| curr->type == TKN_REDIR_APPEND || curr->type == TKN_REDIR_HEREDOC)
 	{
-		if (!current->next)
+		if (!curr->next)
 		{
 			handle_error(ERR_SYNTAX, NULL, "'newline'");
 			return (TRUE);
 		}
-		if (current->next->type != TOKEN_WORD)
+		if (curr->next->type != TOKEN_WORD)
 		{
-			handle_error(ERR_SYNTAX, NULL, current->next->value);
+			handle_error(ERR_SYNTAX, NULL, curr->next->value);
 			return (TRUE);
 		}
 	}
@@ -45,20 +65,22 @@ static int	is_redir_error(t_token *current)
 }
 
 /**
- * @brief Validates the syntax of tokens
+ * @brief Validates the syntax of the token list for common shell errors.
  *
- * TODO: Implementar validação de erros comuns:
- * - Pipe no início ou no final
- * - Dois pipes seguidos (| |)
- * - Redirecionamento sem arquivo (< ou > ou >> sem word depois)
- * - Tokens inválidos
+ * Checks for:
+ * - Pipe at the beginning
+ * - Pipe at the end
+ * - Consecutive pipes
+ * - Redirection without a following word
+ * - Invalid token sequences
+ * Prints a syntax error message if an error is found.
  *
- * @param tokens Lista de tokens
- * @return TRUE se válido, FALSE se houver erro
+ * @param tokens The list of tokens to validate.
+ * @return TRUE if the syntax is valid, FALSE if an error is found.
  */
 static int	validate_syntax(t_token *tokens)
 {
-	t_token *current;
+	t_token	*current;
 
 	if (tokens && tokens->type == TOKEN_PIPE)
 	{
@@ -76,52 +98,20 @@ static int	validate_syntax(t_token *tokens)
 }
 
 /**
- * @brief Adds an argument to the arguments array
+ * @brief Parses the token list and builds the command list structure.
  *
- * Reallocates the args array to fit one more element and adds the new
- * argument while keeping the array NULL-terminated.
+ * Iterates through the tokens, creating command and redirection nodes as needed.
+ * Handles arguments, redirections, and pipes, and links commands together.
  *
- * EXAMPLE:
- * Before: ["ls", NULL]
- * After: ["ls", "-la", NULL]
- *
- * @param cmd Current command
- * @param arg Argument to add
- * @return SUCCESS or ERROR
+ * @param curr The current token in the list.
+ * @param cmd_list Pointer to the head of the command list.
+ * @param current_cmd Pointer to the current command being built.
  */
-int	add_arg_to_cmd(t_cmd *cmd, char *arg)
-{
-	char	**new_args;
-	int		i;
-	int		j;
-
-	i = count_args(cmd->args);
-	new_args = malloc(sizeof(char *) * (i + 2));
-	if (!new_args)
-		return (ERROR);
-	j = 0;
-	while (j < i)
-	{
-		new_args[j] = cmd->args[j];
-		j++;
-	}
-	new_args[i] = ft_strdup(arg);
-	if (!new_args[i])
-	{
-		free(new_args);
-		return (ERROR);
-	}
-	new_args[i + 1] = NULL;
-	free(cmd->args);
-	cmd->args = new_args;
-	return (SUCCESS);
-}
-
-static void parse_tokens(t_token *curr, t_cmd **cmd_list, t_cmd **current_cmd)
+static void	parse_tokens(t_token *curr, t_cmd **cmd_list, t_cmd **current_cmd)
 {
 	t_redir	*redir;
 
-    redir = NULL;
+	redir = NULL;
 	while (curr)
 	{
 		if (curr->type == TOKEN_WORD)
@@ -133,8 +123,8 @@ static void parse_tokens(t_token *curr, t_cmd **cmd_list, t_cmd **current_cmd)
 			}
 			add_arg_to_cmd(*current_cmd, curr->value);
 		}
-		else if (curr->type == TOKEN_REDIR_APPEND || curr->type == TOKEN_REDIR_IN
-			|| curr->type == TOKEN_REDIR_HEREDOC || curr->type == TOKEN_REDIR_OUT)
+		else if (curr->type == TKN_REDIR_APPEND || curr->type == TKN_REDIR_IN
+			|| curr->type == TKN_REDIR_HEREDOC || curr->type == TKN_REDIR_OUT)
 		{
 			redir = create_redir_node(curr->type, curr->next->value);
 			add_redir_to_cmd(*current_cmd, redir);
@@ -147,38 +137,19 @@ static void parse_tokens(t_token *curr, t_cmd **cmd_list, t_cmd **current_cmd)
 }
 
 /**
- * @brief Constrói a lista de comandos a partir dos tokens
+ * @brief Main parser function that builds the command list from tokens.
  *
- * ESTRATÉGIA:
- * 1. Validar sintaxe primeiro
- * 2. Percorrer tokens:
- *    - TOKEN_WORD: adicionar como argumento ao comando atual
- *    - TOKEN_REDIR_*: o próximo WORD é o arquivo, criar t_redir
- *    - TOKEN_PIPE: finalizar comando atual, criar novo
- * 3. Retornar lista ligada de comandos
+ * Validates the syntax of the token list and, if valid, constructs the
+ * linked list of commands and their associated arguments and redirections.
  *
- * EXEMPLO:
- * Tokens: [WORD:ls] [WORD:-la] [PIPE] [WORD:grep] [WORD:test]
- *
- * Resultado:
- * cmd1: args=["ls", "-la", NULL], next=cmd2
- * cmd2: args=["grep", "test", NULL], next=NULL
- *
- * EXEMPLO COM REDIRECIONAMENTO:
- * Tokens: [WORD:cat] [REDIR_IN] [WORD:file.txt] [PIPE] [WORD:wc]
- *
- * Resultado:
- * cmd1: args=["cat", NULL], redirs=[<file.txt>, next=cmd2
- * cmd2: args=["wc", NULL], redirs=NULL, next=NULL
- *
- * @param tokens Lista de tokens expandidos
- * @return Lista de comandos ou NULL em caso de erro
+ * @param tokens The list of expanded tokens to parse.
+ * @return Pointer to the head of the command list, or NULL on error.
  */
 t_cmd	*parser(t_token *tokens)
 {
 	t_cmd	*cmd_list;
 	t_cmd	*current_cmd;
-	
+
 	if (!tokens)
 		return (NULL);
 	if (validate_syntax(tokens) == FALSE)

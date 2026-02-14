@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/12 18:04:03 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 17:36:10 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,8 @@
  * 
  * Checks for operator characters and returns the corresponding type:
  * - '|'  -> TOKEN_PIPE
- * - '<'  -> TOKEN_REDIR_IN or TOKEN_REDIR_HEREDOC ('<<')
- * - '>'  -> TOKEN_REDIR_OUT or TOKEN_REDIR_APPEND ('>>')
+ * - '<'  -> TKN_REDIR_IN or TKN_REDIR_HEREDOC ('<<')
+ * - '>'  -> TKN_REDIR_OUT or TKN_REDIR_APPEND ('>>')
  * - else -> TOKEN_WORD
  * 
  * @param str Input string
@@ -34,20 +34,20 @@ static t_token_type	identify_token_type(char *str, int *i)
 		if (str[*i + 1] == '<')
 		{
 			(*i)++;
-			return (TOKEN_REDIR_HEREDOC);
+			return (TKN_REDIR_HEREDOC);
 		}
 		else
-			return (TOKEN_REDIR_IN);
+			return (TKN_REDIR_IN);
 	}
 	else if (str[*i] == '>')
 	{
 		if (str[*i + 1] == '>')
 		{
 			(*i)++;
-			return (TOKEN_REDIR_APPEND);
+			return (TKN_REDIR_APPEND);
 		}
 		else
-			return (TOKEN_REDIR_OUT);
+			return (TKN_REDIR_OUT);
 	}
 	else
 		return (TOKEN_WORD);

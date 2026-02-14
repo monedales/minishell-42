@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser_utils.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/13 00:00:00 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/13 22:06:20 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/14 17:34:48 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ void	add_cmd(t_cmd **head, t_cmd *new)
  * filename string. The redirection type can be input (<), output (>),
  * append (>>), or heredoc (<<). Used when parsing redirection tokens.
  *
- * @param type Type of redirection (TOKEN_REDIR_IN/OUT/APPEND/HEREDOC)
+ * @param type Type of redirection (TKN_REDIR_IN/OUT/APPEND/HEREDOC)
  * @param file Filename for the redirection
  * @return Pointer to new redirection node, or NULL if allocation fails
  */
@@ -89,29 +89,6 @@ t_redir	*create_redir_node(t_token_type type, char *file)
 	redir->type = type;
 	redir->next = NULL;
 	return (redir);
-}
-
-/**
- * @brief Counts the number of arguments in a NULL-terminated array
- *
- * Iterates through the array of strings and counts elements until
- * reaching the NULL terminator. Used to determine the size needed
- * when reallocating the arguments array.
- *
- * @param args NULL-terminated array of string pointers
- * @return Number of arguments (excluding the NULL terminator)
- */
-int	count_args(char **args)
-{
-	int	i;
-
-	i = 0;
-	if (args)
-	{
-		while (args[i])
-			i++;
-	}
-	return (i);
 }
 
 /**
@@ -140,4 +117,42 @@ void	add_redir_to_cmd(t_cmd *cmd, t_redir *redir)
 	while (current->next)
 		current = current->next;
 	current->next = redir;
+}
+
+/**
+ * @brief Adds an argument to the command's argument array.
+ *
+ * Dynamically reallocates the args array to add a new argument,
+ * ensuring the array remains NULL-terminated.
+ *
+ * @param cmd The command to which the argument will be added.
+ * @param arg The argument string to add.
+ * @return SUCCESS on success, ERROR on allocation failure.
+ */
+int	add_arg_to_cmd(t_cmd *cmd, char *arg)
+{
+	char	**new_args;
+	int		i;
+	int		j;
+
+	i = count_args(cmd->args);
+	new_args = malloc(sizeof(char *) * (i + 2));
+	if (!new_args)
+		return (ERROR);
+	j = 0;
+	while (j < i)
+	{
+		new_args[j] = cmd->args[j];
+		j++;
+	}
+	new_args[i] = ft_strdup(arg);
+	if (!new_args[i])
+	{
+		free(new_args);
+		return (ERROR);
+	}
+	new_args[i + 1] = NULL;
+	free(cmd->args);
+	cmd->args = new_args;
+	return (SUCCESS);
 }

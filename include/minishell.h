@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/14 17:00:56 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 17:36:10 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,10 +45,10 @@ typedef enum e_token_type
 {
 	TOKEN_WORD,
 	TOKEN_PIPE,
-	TOKEN_REDIR_IN,			// <
-	TOKEN_REDIR_OUT,		// >
-	TOKEN_REDIR_APPEND,		// >>
-	TOKEN_REDIR_HEREDOC,	// <<
+	TKN_REDIR_IN,			// <
+	TKN_REDIR_OUT,		// >
+	TKN_REDIR_APPEND,		// >>
+	TKN_REDIR_HEREDOC,	// <<
 	TOKEN_EOF
 }	t_token_type;
 
