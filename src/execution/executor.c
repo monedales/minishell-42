@@ -45,6 +45,5 @@ int	execute_cmd_list(t_cmd *cmd_list, t_mini *mini)
 		execute_simple_cmd(cmd_list, mini);
 	else
 		execute_pipeline(cmd_list, mini)
-
 	return (0);
 }
