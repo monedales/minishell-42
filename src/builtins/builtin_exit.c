@@ -10,7 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
+
 
 // TODO (Pessoa B): Implementar exit
 int	builtin_exit(char **args, t_mini *mini)

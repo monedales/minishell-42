@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
 
 // TODO (Pessoa B): Implementar env
 // Usa print_env() da Pessoa A

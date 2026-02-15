@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
 
 // TODO (Pessoa B): Implementar cd
 int	builtin_cd(char **args, t_mini *mini)

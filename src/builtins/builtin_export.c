@@ -10,7 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
+
 
 // TODO (Pessoa B): Implementar export
 // Usa set_env_value() da Pessoa A

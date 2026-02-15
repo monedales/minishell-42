@@ -23,8 +23,8 @@
 # include <sys/stat.h>
 # include <fcntl.h>
 # include <errno.h>
-# include <readline/readline.h>
-# include <readline/history.h>
+//# include <readline/readline.h>
+//# include <readline/history.h>
 # include "../libraries/libft/libft.h"
 
 /* ========================================================================== */
@@ -72,6 +72,7 @@ typedef struct s_env
 	struct s_env	*prev;
 	struct s_env	*next;
 }	t_env;
+
 
 // Token node
 typedef struct s_token
@@ -135,7 +136,7 @@ int			set_env_value(t_env **env, const char *key, const char *value);
 int			unset_env_value(t_env **env, const char *key);
 void		free_env(t_env *env);
 char		**env_to_array(t_env *env);
-void		add_env_node(t_env **head, t_env *new);
+//void		add_env_node(t_env **head, t_env *new);
 t_env		*create_env_node(char *key, char *value);
 
 /* ========================================================================== */
