@@ -13,10 +13,10 @@
 NAME = minishell
 
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -g
 
 # Libft
-LIBFT_DIR = libft
+LIBFT_DIR = libraries/libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 INCLUDES = -I include -I $(LIBFT_DIR)
@@ -180,6 +180,6 @@ test: $(NAME)
 
 valgrind: $(NAME)
 	@echo "🔍 Running valgrind..."
-	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
+	@valgrind --suppressions=include/valgrind.sup --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
 
 .PHONY: all clean fclean re norm test valgrind

@@ -12,44 +12,6 @@
 
 #include "../../include/minishell.h"
 
-
-// int	ft_strncmp(const char *s1, const char *s2, size_t num)
-// {
-// 	unsigned char	*ps1;
-// 	unsigned char	*ps2;
-// 	size_t			count;
-
-// 	count = 0;
-// 	ps1 = (unsigned char *)s1;
-// 	ps2 = (unsigned char *)s2;
-// 	while (count < num && (ps1[count] || ps2[count]))
-// 	{
-// 		if (ps1[count] != ps2[count])
-// 			return (ps1[count] - ps2[count]);
-// 		count++;
-// 	}
-// 	return (0);
-// }
-
-// size_t	ft_strlen(const char *str)
-// {
-// 	size_t	len;
-
-// 	len = 0;
-// 	while (str[len])
-// 		len++;
-// 	return (len);
-// }
-
-
-// void	ft_putstr_fd(char *str, int fd)
-// {
-// 	size_t	len;
-
-// 	len = ft_strlen(str);
-// 	write(fd, str, len);
-// }
-
 int	builtin_echo(char **args)
 {
 	int	i;
@@ -76,11 +38,3 @@ int	builtin_echo(char **args)
 	}
 	return (0);
 }
-
-// int main()
-// {
-// 	// char	*args[] = {"echo", "-n", "texto 1", NULL};
-// 	char	*args[] = {"echo", NULL};
-// 	builtin_echo(args);
-// 	return 0;
-// }

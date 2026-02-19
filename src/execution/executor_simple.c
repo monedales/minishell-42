@@ -25,7 +25,8 @@
  * @param mini Estrutura principal
  * @return Exit status do comando
  */
-/*
+
+
 void	free_array(char **array)
 {
 	int	i;
@@ -40,7 +41,8 @@ void	free_array(char **array)
 	}
 	free(array);
 }
-*/
+
+// essa funçao tem que ir pro arquivo path_finder.c
 char	*find_cmd_path(char *cmd_name, t_mini *mini)
 {
 	char	*path_value;
@@ -174,48 +176,3 @@ int	execute_simple_cmd(t_cmd *cmd, t_mini *mini)
 	} 
 	return (0);
 }
-/*
-int	main(int ac, char **av)
-{
-	t_cmd *cmd;
-	t_mini *mini;
-	
-	char	*args[] = {"ls", "-la"}
-	//ls
-	execute_simple_cmd(mini->cmd_list, mini);
-	return 0;
-}
-
-typedef struct s_mini
-{
-	t_env	*env;				// lista ligada de variáveis de ambiente
-	t_cmd	*cmd_list;			// lista de comandos (separados por pipe)
-	int		last_exit_status;	// status do último comando ($?)
-	int		running;			// flag para manter o loop ativo
-}	t_mini;
-	
-
-typedef struct s_cmd
-{
-	char			**args;		// comando + argumentos [cmd, arg1, arg2, NULL]
-	t_redir			*redirs;	// lista de redirecionamentos
-	struct s_cmd	*next;		// próximo comando (após pipe)
-}	t_cmd;
-	
-
-typedef struct s_env
-{
-	char			*key;
-	char			*value;
-	struct s_env	*prev;
-	struct s_env	*next;
-}	t_env;
-
-
-typedef struct s_redir
-{
-	t_token_type	type;		// tipo de redirecionamento
-	char			*file;		// nome do arquivo
-	struct s_redir	*next;
-}	t_redir;
-*/

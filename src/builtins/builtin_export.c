@@ -17,6 +17,10 @@
 // Usa set_env_value() da Pessoa A
 int	builtin_export(char **args, t_mini *mini)
 {
+
+	//int	set_env_value(t_env **env, const char *key, const char *value)
+	// printa a env em ordem alfabetica
+
 	(void)args;
 	(void)mini;
 	return (0);
