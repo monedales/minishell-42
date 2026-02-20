@@ -6,125 +6,167 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/14 17:36:10 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 /**
- * @brief Cria um novo token
+ * @brief Identifies the token type based on the current character
  * 
- * TODO: Implementar criação de token com malloc
- * - Alocar memória para t_token
- * - Inicializar type e value
- * - Inicializar next como NULL
+ * Checks for operator characters and returns the corresponding type:
+ * - '|'  -> TOKEN_PIPE
+ * - '<'  -> TKN_REDIR_IN or TKN_REDIR_HEREDOC ('<<')
+ * - '>'  -> TKN_REDIR_OUT or TKN_REDIR_APPEND ('>>')
+ * - else -> TOKEN_WORD
  * 
- * @param type Tipo do token
- * @param value Valor do token (duplicar string)
- * @return Novo token ou NULL em caso de erro
- */
-static t_token	*create_token(t_token_type type, char *value)
-{
-	// TODO: Implementar
-	(void)type;
-	(void)value;
-	return (NULL);
-}
-
-/**
- * @brief Adiciona token ao final da lista
- * 
- * TODO: Implementar adição de token à lista ligada
- * 
- * @param head Ponteiro para o início da lista
- * @param new_token Token a ser adicionado
- */
-static void	add_token(t_token **head, t_token *new_token)
-{
-	// TODO: Implementar
-	(void)head;
-	(void)new_token;
-}
-
-/**
- * @brief Identifica o tipo de token baseado no caractere
- * 
- * TODO: Implementar identificação de:
- * - '|' -> TOKEN_PIPE
- * - '<' -> TOKEN_REDIR_IN ou TOKEN_REDIR_HEREDOC (se '<<')
- * - '>' -> TOKEN_REDIR_OUT ou TOKEN_REDIR_APPEND (se '>>')
- * - outros -> TOKEN_WORD
- * 
- * @param str String atual
- * @param i Índice atual
- * @return Tipo de token identificado
+ * @param str Input string
+ * @param i Pointer to current index (incremented for double operators)
+ * @return The identified token type
  */
 static t_token_type	identify_token_type(char *str, int *i)
 {
-	// TODO: Implementar
-	(void)str;
-	(void)i;
-	return (TOKEN_WORD);
+	if (str[*i] == '|')
+		return (TOKEN_PIPE);
+	else if (str[*i] == '<')
+	{
+		if (str[*i + 1] == '<')
+		{
+			(*i)++;
+			return (TKN_REDIR_HEREDOC);
+		}
+		else
+			return (TKN_REDIR_IN);
+	}
+	else if (str[*i] == '>')
+	{
+		if (str[*i + 1] == '>')
+		{
+			(*i)++;
+			return (TKN_REDIR_APPEND);
+		}
+		else
+			return (TKN_REDIR_OUT);
+	}
+	else
+		return (TOKEN_WORD);
 }
 
 /**
- * @brief Extrai uma palavra (TOKEN_WORD) respeitando aspas
+ * @brief Checks if a character is a token delimiter
  * 
- * TODO: Implementar extração de palavra
- * - Enquanto não encontrar espaço, pipe ou redirecionamento
- * - Respeitar aspas (não parar em espaços dentro de aspas)
- * - Usar máquina de estados para rastrear se está dentro de aspas
+ * Delimiters are whitespace, pipe and redirection characters.
  * 
- * @param str String de input
- * @param i Ponteiro para índice atual (será atualizado)
- * @return String com a palavra extraída
+ * @param c Character to check
+ * @return 1 if delimiter, 0 otherwise
+ */
+static int	is_delimiter(char c)
+{
+	return (c == ' ' || c == '\t' || c == '|'
+		|| c == '<' || c == '>');
+}
+
+/**
+ * @brief Extracts a word token from the input string
+ * 
+ * Reads characters until a delimiter is found, while respecting
+ * single and double quotes (delimiters inside quotes are ignored).
+ * 
+ * @param str Input string
+ * @param i Pointer to current index (updated after extraction)
+ * @return Newly allocated string with the extracted word, or NULL
  */
 static char	*extract_word(char *str, int *i)
 {
-	// TODO: Implementar
-	(void)str;
-	(void)i;
-	return (NULL);
+	int		start;
+	int		in_single;
+	int		in_double;
+	char	*word;
+
+	start = *i;
+	in_single = 0;
+	in_double = 0;
+	while (str[*i] && (in_single || in_double || !is_delimiter(str[*i])))
+	{
+		if (str[*i] == '\'' && !in_double)
+			in_single = !in_single;
+		else if (str[*i] == '"' && !in_single)
+			in_double = !in_double;
+		(*i)++;
+	}
+	word = ft_substr(str, start, *i - start);
+	if (!word)
+		return (NULL);
+	return (word);
 }
 
 /**
- * @brief Tokeniza a string de input
+ * @brief Creates the next token from the current position
  * 
- * ESTRATÉGIA:
- * 1. Percorrer a string caractere por caractere
- * 2. Ignorar espaços
- * 3. Identificar operadores (|, <, >, <<, >>)
- * 4. Extrair palavras (respeitando aspas)
- * 5. Criar tokens e adicionar à lista
+ * Identifies the token type and creates either an operator token
+ * (with NULL value) or a word token (with extracted string value).
  * 
- * EXEMPLO:
- * Input:  echo "hello world" | grep hello > out.txt
- * Output: [WORD:echo] [WORD:hello world] [PIPE] [WORD:grep] 
- *         [WORD:hello] [REDIR_OUT] [WORD:out.txt]
+ * @param input Input string
+ * @param i Pointer to current index (updated after tokenization)
+ * @return New token, or NULL on allocation failure
+ */
+static t_token	*next_token(char *input, int *i)
+{
+	t_token_type	type;
+	t_token			*token;
+	char			*value;
+
+	type = identify_token_type(input, i);
+	if (type != TOKEN_WORD)
+	{
+		token = create_token(type, NULL);
+		(*i)++;
+	}
+	else
+	{
+		value = extract_word(input, i);
+		if (!value)
+			return (NULL);
+		token = create_token(type, value);
+		free(value);
+	}
+	return (token);
+}
+
+/**
+ * @brief Tokenizes the input string into a linked list of tokens
  * 
- * @param input String lida pelo readline
- * @return Lista ligada de tokens ou NULL em caso de erro
+ * Iterates through the input, skipping whitespace and creating tokens
+ * for each word or operator found. Handles pipes, redirections,
+ * and quoted strings.
+ * 
+ * @param input Raw input string from readline
+ * @return Linked list of tokens, or NULL on error or empty input
  */
 t_token	*lexer(char *input)
 {
-	// TODO: Implementar lógica completa do lexer
-	(void)input;
-	return (NULL);
-}
+	t_token	*head;
+	t_token	*token;
+	int		i;
 
-/**
- * @brief Libera toda a lista de tokens
- * 
- * TODO: Implementar free recursivo ou iterativo
- * - Percorrer a lista
- * - Dar free no value de cada token
- * - Dar free no próprio token
- * 
- * @param tokens Cabeça da lista de tokens
- */
-void	free_tokens(t_token *tokens)
-{
-	// TODO: Implementar
-	(void)tokens;
+	if (!input)
+		return (NULL);
+	head = NULL;
+	i = 0;
+	while (input[i])
+	{
+		while (input[i] == ' ' || input[i] == '\t')
+			i++;
+		if (!input[i])
+			break ;
+		token = next_token(input, &i);
+		if (!token)
+		{
+			free_tokens(head);
+			return (NULL);
+		}
+		add_token(&head, token);
+	}
+	return (head);
 }

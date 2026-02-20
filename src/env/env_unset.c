@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_unset.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/10 21:08:46 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/14 17:38:06 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int	unset_env_value(t_env **env, const char *key)
 			free(current->value);
 			free(current);
 			return (SUCCESS);
-		}	
+		}
 		current = current->next;
 	}
 	return (ERROR);

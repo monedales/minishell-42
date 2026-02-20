@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_init.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/10 19:50:38 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/14 17:38:34 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
  * @param value Variable value
  * @return New node or NULL on error
  */
-t_env	*create_env_node(char *key, char *value)
+t_env	*create_env_node(const char *key, const char *value)
 {
 	t_env	*node;
 
@@ -43,7 +43,6 @@ t_env	*create_env_node(char *key, char *value)
 	}
 	node->prev = NULL;
 	node->next = NULL;
-
 	return (node);
 }
 

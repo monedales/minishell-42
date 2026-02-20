@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/10 19:50:54 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/14 17:36:10 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 # include <errno.h>
 # include <readline/readline.h>
 # include <readline/history.h>
-# include "libraries/libft/libft.h"
+# include "libft.h"
 
 /* ========================================================================== */
 /*                                  DEFINES                                   */
@@ -45,10 +45,10 @@ typedef enum e_token_type
 {
 	TOKEN_WORD,
 	TOKEN_PIPE,
-	TOKEN_REDIR_IN,			// <
-	TOKEN_REDIR_OUT,		// >
-	TOKEN_REDIR_APPEND,		// >>
-	TOKEN_REDIR_HEREDOC,	// <<
+	TKN_REDIR_IN,			// <
+	TKN_REDIR_OUT,		// >
+	TKN_REDIR_APPEND,		// >>
+	TKN_REDIR_HEREDOC,	// <<
 	TOKEN_EOF
 }	t_token_type;
 
@@ -59,6 +59,22 @@ typedef enum e_quote_state
 	QUOTE_SINGLE,
 	QUOTE_DOUBLE
 }	t_quote_state;
+
+// Error types
+typedef enum e_error
+{
+	ERR_NONE,
+	ERR_SYNTAX,
+	ERR_CMD_NOT_FOUND,
+	ERR_NO_FILE,
+	ERR_PERMISSION,
+	ERR_MALLOC,
+	ERR_TOO_MANY_ARGS,
+	ERR_NUM_REQUIRED,
+	ERR_NOT_VALID_ID,
+	ERR_HOME_NOT_SET,
+	ERR_OLDPWD_NOT_SET
+}	t_error;
 
 /* ========================================================================== */
 /*                                 STRUCTURES                                 */
@@ -94,6 +110,7 @@ typedef struct s_cmd
 {
 	char			**args;		// comando + argumentos [cmd, arg1, arg2, NULL]
 	t_redir			*redirs;	// lista de redirecionamentos
+	pid_t			pid;
 	struct s_cmd	*next;		// próximo comando (após pipe)
 }	t_cmd;
 
@@ -113,17 +130,27 @@ typedef struct s_mini
 // Lexer - Tokenização
 t_token		*lexer(char *input);
 void		free_tokens(t_token *tokens);
+t_token		*create_token(t_token_type type, char *value);
+void		add_token(t_token **head, t_token *new_token);
 
 // Expander - Expansão de variáveis
 void		expand_tokens(t_token *tokens, t_mini *mini);
 
 // Parser - Construção da árvore de comandos
 t_cmd		*parser(t_token *tokens);
+t_cmd		*create_cmd_node(void);
+void		add_cmd(t_cmd **head, t_cmd *new);
+t_redir		*create_redir_node(t_token_type type, char *file);
+t_redir		*create_redir_node(t_token_type type, char *file);
+int			count_args(char **args);
+void		add_redir_to_cmd(t_cmd *cmd, t_redir *redir);
+void		free_redirs(t_redir *redirs);
 void		free_cmd_list(t_cmd *cmd_list);
 
 // Quote handling
 char		*remove_quotes(char *str);
 int			is_in_quotes(char *str, int pos, t_quote_state *state);
+int			validate_quotes(char *str);
 
 /* ========================================================================== */
 /*                           ENVIRONMENT (Pessoa A)                           */
@@ -136,7 +163,7 @@ int			unset_env_value(t_env **env, const char *key);
 void		free_env(t_env *env);
 char		**env_to_array(t_env *env);
 void		add_env_node(t_env **head, t_env *new);
-t_env		*create_env_node(char *key, char *value);
+t_env		*create_env_node(const char *key, const char *value);
 
 /* ========================================================================== */
 /*                          EXECUTION (Pessoa B)                              */
@@ -180,7 +207,7 @@ void		free_split(char **split);
 void		safe_free(void **ptr);
 
 // Error handling
-void		print_error(char *msg);
-void		exit_error(char *msg, int exit_code);
+int			handle_error(t_error error, char *cmd, char *detail);
+void		exit_error(t_error error, char *cmd, char *detail, int code);
 
 #endif

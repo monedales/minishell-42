@@ -6,7 +6,7 @@
 #    By: mona <mona@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/21 00:00:00 by mona              #+#    #+#              #
-#    Updated: 2026/01/21 21:02:13 by mona             ###   ########.fr        #
+#    Updated: 2026/02/14 17:19:07 by mona             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror -g
 
 # Libft
-LIBFT_DIR = libft
+LIBFT_DIR = libraries/libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 INCLUDES = -I include -I $(LIBFT_DIR)
@@ -47,7 +47,10 @@ MAIN_SRC = main.c
 PARSING_SRC = lexer.c \
               expander.c \
               parser.c \
-              quotes.c
+              parser_utils.c \
+              parser_free.c \
+              quotes.c \
+			  tokens.c
 
 # Environment (Pessoa A)
 ENV_SRC = env_init.c \
@@ -95,6 +98,11 @@ UTILS_OBJ = $(addprefix $(OBJ_DIR)/utils/, $(UTILS_SRC:.c=.o))
 ALL_OBJ = $(MAIN_OBJ) $(PARSING_OBJ) $(ENV_OBJ) $(EXEC_OBJ) \
           $(BUILTIN_OBJ) $(SIGNALS_OBJ) $(UTILS_OBJ)
 
+# Minimal objects for testing env and lexer only
+TEST_SRC = test_main.c
+TEST_OBJ = $(addprefix $(OBJ_DIR)/, $(TEST_SRC:.c=.o))
+TEST_ENV_OBJ = $(TEST_OBJ) $(ENV_OBJ) $(UTILS_OBJ) $(addprefix $(OBJ_DIR)/parsing/, lexer.o tokens.o parser.o parser_utils.o parser_free.o quotes.o)
+
 # ============================================================================ #
 #                                  RULES                                       #
 # ============================================================================ #
@@ -110,45 +118,49 @@ $(NAME): $(LIBFT) $(ALL_OBJ)
 	@$(CC) $(CFLAGS) $(ALL_OBJ) $(LIBS) -o $(NAME)
 	@echo "✅ $(NAME) created successfully!"
 
-# Main
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+# Diretórios necessários
+OBJ_SUBDIRS = $(OBJ_DIR)/parsing $(OBJ_DIR)/env $(OBJ_DIR)/execution $(OBJ_DIR)/builtins $(OBJ_DIR)/signals $(OBJ_DIR)/utils
+
+# Garante que todos os subdiretórios existem antes de compilar qualquer objeto
+.PRECIOUS: $(OBJ_SUBDIRS)
+$(OBJ_SUBDIRS):
+	@mkdir -p $@
+
+$(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
+
+# Main
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Parsing
-$(OBJ_DIR)/parsing/%.o: $(PARSING_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/parsing
+$(OBJ_DIR)/parsing/%.o: $(PARSING_DIR)/%.c | $(OBJ_DIR)/parsing
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Environment
-$(OBJ_DIR)/env/%.o: $(ENV_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/env
+$(OBJ_DIR)/env/%.o: $(ENV_DIR)/%.c | $(OBJ_DIR)/env
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Execution
-$(OBJ_DIR)/execution/%.o: $(EXEC_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/execution
+$(OBJ_DIR)/execution/%.o: $(EXEC_DIR)/%.c | $(OBJ_DIR)/execution
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Builtins
-$(OBJ_DIR)/builtins/%.o: $(BUILTIN_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/builtins
+$(OBJ_DIR)/builtins/%.o: $(BUILTIN_DIR)/%.c | $(OBJ_DIR)/builtins
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Signals
-$(OBJ_DIR)/signals/%.o: $(SIGNALS_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/signals
+$(OBJ_DIR)/signals/%.o: $(SIGNALS_DIR)/%.c | $(OBJ_DIR)/signals
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Utils
-$(OBJ_DIR)/utils/%.o: $(UTILS_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)/utils
+$(OBJ_DIR)/utils/%.o: $(UTILS_DIR)/%.c | $(OBJ_DIR)/utils
 	@echo "🔨 Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
@@ -182,4 +194,10 @@ valgrind: $(NAME)
 	@echo "🔍 Running valgrind..."
 	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
 
-.PHONY: all clean fclean re norm test valgrind
+# Target para testar apenas env (para desenvolvimento incremental)
+test_env: $(LIBFT) $(TEST_ENV_OBJ)
+	@echo "🔗 Linking test_env..."
+	@$(CC) $(CFLAGS) $(TEST_ENV_OBJ) $(LIBS) -o test_env
+	@echo "✅ test_env created! Run with: ./test_env"
+
+.PHONY: all clean fclean re norm test valgrind test_env
