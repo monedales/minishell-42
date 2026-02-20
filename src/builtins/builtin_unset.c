@@ -10,7 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
+
 
 // TODO (Pessoa B): Implementar unset
 // Usa unset_env_value() da Pessoa A

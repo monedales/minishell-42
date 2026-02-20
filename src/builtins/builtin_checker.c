@@ -10,19 +10,50 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+
+
+
+#include "../../include/minishell.h"
+
+
 
 int	is_builtin(char *cmd)
 {
-	// TODO (Pessoa B): Implementar
-	(void)cmd;
-	return (FALSE);
+	if (ft_strncmp(cmd, "echo", 5) == 0)
+		return (1);	
+	if (ft_strncmp(cmd, "cd", 2) == 0)
+		return (1);	
+	if (ft_strncmp(cmd, "pwd", 3) == 0)
+		return (1);	
+	if (ft_strncmp(cmd, "export", 6) == 0)
+		return (1);	
+	if (ft_strncmp(cmd, "unset", 5) == 0)
+		return (1);	
+	if (ft_strncmp(cmd, "env", 3) == 0)
+		return (1);	
+	if (ft_strncmp(cmd, "exit", 5) == 0)
+		return (1);	
+	return (0);
 }
 
-int	execute_builtin(t_cmd *cmd, t_mini *mini)
+int	execute_builtin(t_cmd *cmd_list, t_mini *mini)
 {
-	// TODO (Pessoa B): Implementar dispatcher de builtins
-	(void)cmd;
-	(void)mini;
-	return (0);
+    char *cmd_name;
+
+    cmd_name = cmd_list->args[0];
+	if (ft_strncmp(cmd_name, "cd", 3) == 0)
+		return (builtin_cd(cmd_list->args, mini));	
+	if (ft_strncmp(cmd_name, "echo", 5) == 0)
+		return (builtin_echo(cmd_list->args));
+	if (ft_strncmp(cmd_name, "env", 4) == 0)
+		return (builtin_env(mini));		
+	if (ft_strncmp(cmd_name, "exit", 6) == 0)
+		return (builtin_exit(cmd_list->args, mini));	
+	if (ft_strncmp(cmd_name, "export", 7) == 0)
+		return (builtin_export(cmd_list->args, mini));		
+	if (ft_strncmp(cmd_name, "pwd", 4) == 0)
+		return (builtin_pwd());		
+	if (ft_strncmp(cmd_name, "unset", 6) == 0)
+		return (builtin_unset(cmd_list->args, mini));		
+	return (1);
 }

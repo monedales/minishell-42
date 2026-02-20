@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
 
 /**
  * @brief Busca o caminho completo de um comando
@@ -31,10 +31,47 @@
  * @param env Lista de ambiente
  * @return Caminho completo ou NULL se não encontrar
  */
-char	*find_command_path(char *cmd, t_env *env)
+
+// TODO: diminuir essa funçao 
+char	*find_command_path(char *cmd_name, t_env *env_list)
 {
-	// TODO: Implementar
-	(void)cmd;
-	(void)env;
+	char	*path_value;
+	char	**dir;
+	char	*temp;
+	char	*full_path;
+	int		i;
+
+    if (ft_strchr(cmd_name, '/'))
+    	return (ft_strdup(cmd_name));
+	while (env_list)
+	{			
+		if (ft_strncmp(env_list->key, "PATH", 4) == 0 
+		&& env_list->key[4] == '\0')
+		{
+			path_value = env_list->value;
+			break ;
+		}
+		env_list = env_list->next;
+	}
+	if (!path_value)
+		return (NULL);
+	temp = ft_strdup(path_value);
+	dir = ft_split(path_value, ':');
+	if (!dir)
+    	return (NULL);
+	i = 0;
+	while (dir[i])
+	{
+		temp = ft_strjoin(dir[i], "/");
+		full_path = ft_strjoin(temp, cmd_name);
+		free(temp);
+		if (access(full_path, X_OK) == 0)
+		{
+			// free_array(dir);
+			return (full_path);
+		}
+		free(full_path);
+		i++;
+	}
 	return (NULL);
 }

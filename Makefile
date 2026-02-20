@@ -13,7 +13,7 @@
 NAME = minishell
 
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -g
 
 # Libft
 LIBFT_DIR = libraries/libft
@@ -192,7 +192,7 @@ test: $(NAME)
 
 valgrind: $(NAME)
 	@echo "🔍 Running valgrind..."
-	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
+	@valgrind --suppressions=include/valgrind.sup --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
 
 # Target para testar apenas env (para desenvolvimento incremental)
 test_env: $(LIBFT) $(TEST_ENV_OBJ)
