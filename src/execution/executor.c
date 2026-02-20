@@ -31,7 +31,6 @@ int	execute_cmd_list(t_cmd *cmd_list, t_mini *mini)
 {
 	char	*command;
 
-	// vou mudar o fluxo
 	command = cmd_list->args[0];
 	if (is_builtin(command) == 1)
 		execute_builtin(cmd_list, mini);

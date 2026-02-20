@@ -43,50 +43,50 @@ void	free_array(char **array)
 }
 
 // essa funçao tem que ir pro arquivo path_finder.c
-char	*find_cmd_path(char *cmd_name, t_mini *mini)
-{
-	char	*path_value;
-	char	**dir;
-	char	*temp;
-	char	*full_path;
-	t_env	*env_list;
-	int		i;
+// char	*find_cmd_path(char *cmd_name, t_mini *mini)
+// {
+// 	char	*path_value;
+// 	char	**dir;
+// 	char	*temp;
+// 	char	*full_path;
+// 	t_env	*env_list;
+// 	int		i;
 
-	env_list = mini->env;
-    if (ft_strchr(cmd_name, '/'))
-    	return (ft_strdup(cmd_name));
-	while (env_list)
-	{			
-		if (ft_strncmp(env_list->key, "PATH", 4) == 0 
-		&& env_list->key[4] == '\0')
-		{
-			path_value = env_list->value;
-			break ;
-		}
-		env_list = env_list->next;
-	}
-	if (!path_value)
-		return (NULL);
-	temp = ft_strdup(path_value);
-	dir = ft_split(path_value, ':');
-	if (!dir)
-    	return (NULL);
-	i = 0;
-	while (dir[i])
-	{
-		temp = ft_strjoin(dir[i], "/");
-		full_path = ft_strjoin(temp, cmd_name);
-		free(temp);
-		if (access(full_path, X_OK) == 0)
-		{
-			free_array(dir);
-			return (full_path);
-		}
-		free(full_path);
-		i++;
-	}
-	return (NULL);
-}
+// 	env_list = mini->env;
+//     if (ft_strchr(cmd_name, '/'))
+//     	return (ft_strdup(cmd_name));
+// 	while (env_list)
+// 	{			
+// 		if (ft_strncmp(env_list->key, "PATH", 4) == 0 
+// 		&& env_list->key[4] == '\0')
+// 		{
+// 			path_value = env_list->value;
+// 			break ;
+// 		}
+// 		env_list = env_list->next;
+// 	}
+// 	if (!path_value)
+// 		return (NULL);
+// 	temp = ft_strdup(path_value);
+// 	dir = ft_split(path_value, ':');
+// 	if (!dir)
+//     	return (NULL);
+// 	i = 0;
+// 	while (dir[i])
+// 	{
+// 		temp = ft_strjoin(dir[i], "/");
+// 		full_path = ft_strjoin(temp, cmd_name);
+// 		free(temp);
+// 		if (access(full_path, X_OK) == 0)
+// 		{
+// 			free_array(dir);
+// 			return (full_path);
+// 		}
+// 		free(full_path);
+// 		i++;
+// 	}
+// 	return (NULL);
+// }
 
 
 int	size_list(t_env *env)
@@ -140,39 +140,69 @@ char	**join_key_value(t_env *env)
 	return (key_value);
 }
 
-int	execute_simple_cmd(t_cmd *cmd, t_mini *mini)
+void	exec_child(t_cmd *cmd, t_mini *mini)
 {
-
-	// aqui e pra lidar com os cmd og do linux (ls, cat e tal)
-	pid_t	pid;
 	char	*cmd_path;
 	char	**env_array;
+	t_env	*env;
 
-	cmd_path = find_cmd_path(cmd->args[0], mini);
+	env = mini->env;
+	cmd_path = find_command_path(cmd->args[0], env);
 	if (!cmd_path)
-		return (1);
-		//return (print_command_error(cmd->args[0]));
+	{
+		// handle error da mona
+		exit(1);
+	}
 	env_array = join_key_value(mini->env);
+	if (execve(cmd_path, cmd->args, env_array) == -1)
+	{
+		ft_putstr_fd("error execve", 2);
+		free(cmd_path);
+		free_array(env_array);
+		exit(126);
+	}
+	exit(0);
+}
+
+int	execute_simple_cmd(t_cmd *cmd, t_mini *mini)
+{
+	pid_t	pid;
+
+	// cmd->args[0], ' '
+	if (is_builtin(cmd->args[0]) == 1)
+		return (execute_builtin(cmd, mini));
+
 	pid = fork();
 	if (pid == -1)
 	{
 		perror("error fork");
-		free(cmd_path);
-		free_array(env_array);
 		return (1);
 	}
 	if (pid == 0)
+		exec_child(cmd, mini);
+	else 
 	{
-		if (execve(cmd_path, cmd->args, env_array) == -1)
-		{
-			ft_putstr_fd("error execve", 2);
-			free(cmd_path);
-			free_array(env_array);
-			exit(126);
-		}
-	}
-	else {
 		wait(NULL);
 	} 
-	return (0);
+	return (1);
 }
+
+// int main (int ac, char **av, char **envp)
+// {
+// 	t_cmd	*cmd;
+// 	char	*args[] = {"echo ", "osasco", NULL};
+// 	cmd->args = args;
+// 	cmd->redirs = NULL;
+// 	cmd->next = NULL;
+
+// 	t_mini  *mini =  malloc(sizeof(t_mini));
+// 	mini->env = init_env(envp);
+//     mini->cmd_list = cmd;
+//     mini->last_exit_status = 0;
+// 	mini->running = 1;
+
+// 	int	exit_statuss = execute_simple_cmd(cmd, mini);
+
+// 	printf("%d\n", exit_statuss);
+// 	return 0;	
+// }
