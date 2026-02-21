@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/19 22:02:04 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/20 15:06:21 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,6 +152,7 @@ void		free_cmd_list(t_cmd *cmd_list);
 char		*remove_quotes(char *str);
 int			is_in_quotes(char *str, int pos, t_quote_state *state);
 int			validate_quotes(char *str);
+void		update_quote_state(char c, t_quote_state *state);
 
 /* ========================================================================== */
 /*                           ENVIRONMENT (Pessoa A)                           */
