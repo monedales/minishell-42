@@ -22,7 +22,7 @@ int	builtin_echo(char **args)
 
 	if (ft_strncmp(args[0], "echo", 5) != 0)
 	{
-		handle_error()
+		// handle_error() 
 		return (1);
 	}
 	while (args[i] &&  ft_strncmp(args[i], "-n", 2) == 0)

@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
 
 /**
  * @brief Counts the number of variables in the environment list
@@ -74,6 +74,8 @@ char	**env_to_array(t_env *env)
  * 
  * @param env Environment list
  */
+
+// trocar printf por ft_printf
 void	print_env(t_env *env)
 {
 	while (env)

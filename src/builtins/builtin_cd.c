@@ -15,7 +15,16 @@
 // TODO (Pessoa B): Implementar cd
 int	builtin_cd(char **args, t_mini *mini)
 {
-	(void)args;
-	(void)mini;
+	char	*path;
+
+	if (args[1] == NULL)
+		path = getenv("HOME");
+	else
+		path = args[1];
+	if (chdir(path) != 0)
+	{
+		//handle_error();
+		return (1);
+	}
 	return (0);
 }

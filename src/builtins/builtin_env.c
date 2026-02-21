@@ -16,6 +16,11 @@
 // Usa print_env() da Pessoa A
 int	builtin_env(t_mini *mini)
 {
-	(void)mini;
+	t_env	*env;
+
+	env = mini->env;
+	if (!env)
+		return (1);
+	print_env(env);
 	return (0);
 }
