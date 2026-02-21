@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   quotes.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/19 22:10:37 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/20 15:05:54 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
  * @param c Current character
  * @param state Pointer to the current quote state
  */
-static void	update_quote_state(char c, t_quote_state *state)
+void	update_quote_state(char c, t_quote_state *state)
 {
 	if (c == '"' && *state == QUOTE_NONE)
 		*state = QUOTE_DOUBLE;

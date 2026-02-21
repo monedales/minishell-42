@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/20 21:54:40 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,12 @@
  */
 static int	is_var_start(char c, char next)
 {
-	// TODO: Implementar
-	(void)c;
-	(void)next;
+	if (c != '$')
+		return (FALSE);
+	if (next == '?')
+		return (TRUE);
+	if (ft_isalnum(next) == 1 || next == '_')
+		return (TRUE);
 	return (FALSE);
 }
 
@@ -48,10 +51,29 @@ static int	is_var_start(char c, char next)
  */
 static char	*extract_var_name(char *str, int *len)
 {
-	// TODO: Implementar
-	(void)str;
-	(void)len;
-	return (NULL);
+	size_t	i;
+	char	*s1;
+	char	*var_name;
+	
+	if (!str || !len)
+		return (NULL);
+	i = 0;
+	if (str[0] == '?')
+	{
+		s1 = ft_strdup("?");
+		*len = 1;
+		return (s1);
+	}
+	if (!is_var_start('$', str[0]))
+		return (NULL);
+	while(str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
+		i++;
+	*len = i;
+	var_name = ft_calloc(*len + 1, sizeof(char));
+	if (!var_name)
+		return (NULL);
+	ft_strlcpy(var_name, str, i + 1);
+	return (var_name);
 }
 
 /**
@@ -90,17 +112,28 @@ static char	*expand_string(char *str, t_mini *mini)
  * @param str String a verificar
  * @return TRUE se estiver em aspas simples, FALSE caso contrário
  */
-static int	is_single_quoted(char *str)
+static int is_single_quoted(char *str)
 {
-	// TODO: Implementar
-	(void)str;
-	return (FALSE);
-}
+	size_t          i;
+	t_quote_state   state;
 
-/**
- * @brief Expande variáveis em todos os tokens
- * 
- * ESTRATÉGIA:
+	if (!str)
+		return (FALSE);
+	i = 0;
+	if (str[0] != '\'')
+		return (FALSE);
+	state = QUOTE_NONE;
+	while (str[i])
+	{
+		update_quote_state(str[i], &state);
+		i++;
+	}
+	if (state == QUOTE_NONE && str[i - 1] == '\'')
+		return (TRUE);
+	else
+		return (FALSE);
+}
+/*
  * 1. Percorrer lista de tokens
  * 2. Para cada TOKEN_WORD:
  *    - Verificar se não está em aspas simples
