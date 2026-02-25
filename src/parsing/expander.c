@@ -3,77 +3,53 @@
 /*                                                        :::      ::::::::   */
 /*   expander.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/20 21:54:40 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/25 17:50:38 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
 
-/**
- * @brief Verifica se um caractere é o início de uma variável
- * 
- * TODO: Implementar
- * - Retornar TRUE se for '$' seguido de letra, dígito ou '_'
- * - Caso especial: '$?' é sempre uma variável
- * 
- * @param c Caractere atual
- * @param next Próximo caractere
- * @return TRUE se for início de variável, FALSE caso contrário
- */
-static int	is_var_start(char c, char next)
+/*
+** @brief Adiciona um caractere ao buffer dinamicamente.
+**
+** @param base Buffer atual (pode ser NULL)
+** @param c Caractere a ser adicionado
+** @return Novo buffer concatenado, ou NULL em caso de erro.
+*/
+static char	*append_char_to_buffer(char *base, char c)
 {
-	if (c != '$')
-		return (FALSE);
-	if (next == '?')
-		return (TRUE);
-	if (ft_isalnum(next) == 1 || next == '_')
-		return (TRUE);
-	return (FALSE);
+	char	tmp[2];
+
+	tmp[0] = c;
+	tmp[1] = '\0';
+	return (append_to_buffer(base, tmp));
 }
 
-/**
- * @brief Extrai o nome da variável (sem o $)
- * 
- * TODO: Implementar extração
- * - Extrair caracteres válidos (letras, dígitos, underscore)
- * - Caso especial: "?" sozinho (para $?)
- * 
- * EXEMPLO:
- * Input: "$USER_HOME" -> "USER_HOME"
- * Input: "$?" -> "?"
- * 
- * @param str String começando após o '$'
- * @param len Ponteiro para armazenar o tamanho extraído
- * @return Nome da variável extraído
- */
-static char	*extract_var_name(char *str, int *len)
+/*
+** @brief Processa e expande uma variável na string.
+**
+** Extrai o nome, expande o valor e avança o índice.
+**
+** @param str Ponteiro para o início do $VAR
+** @param mini Estrutura principal
+** @param i Ponteiro para índice a ser avançado
+** @return String expandida (malloc), ou NULL
+*/
+static char	*expand_one_var(char *str, t_mini *mini, int *i)
 {
-	size_t	i;
-	char	*s1;
 	char	*var_name;
-	
-	if (!str || !len)
-		return (NULL);
-	i = 0;
-	if (str[0] == '?')
-	{
-		s1 = ft_strdup("?");
-		*len = 1;
-		return (s1);
-	}
-	if (!is_var_start('$', str[0]))
-		return (NULL);
-	while(str[i] && (ft_isalnum(str[i]) || str[i] == '_'))
-		i++;
-	*len = i;
-	var_name = ft_calloc(*len + 1, sizeof(char));
-	if (!var_name)
-		return (NULL);
-	ft_strlcpy(var_name, str, i + 1);
-	return (var_name);
+	char	*value;
+	int		len;
+
+	len = 0;
+	var_name = extract_var_name(str + 1, &len);
+	value = expand_var_value(var_name, mini);
+	free(var_name);
+	*i += len + 1;
+	return (value);
 }
 
 /**
@@ -90,49 +66,72 @@ static char	*extract_var_name(char *str, int *len)
  * Input: "exit: $?" com status=127 -> "exit: 127"
  * Input: 'Hello $USER' -> 'Hello $USER' (sem expansão!)
  * 
- * @param str String original
+ * @param str String originalnext->
  * @param mini Estrutura principal (para acessar env e exit_status)
  * @return Nova string com variáveis expandidas
  */
-static char	*expand_string(char *str, t_mini *mini)
+char	*expand_string(char *str, t_mini *mini)
 {
-	// TODO: Implementar
-	(void)str;
-	(void)mini;
-	return (NULL);
-}
+	char	*result;
+	int		i;
+	char	*value;
 
-/**
- * @brief Verifica se a string está entre aspas simples
- * 
- * TODO: Implementar verificação
- * - Aspas simples desabilitam TODA expansão
- * - Aspas duplas permitem expansão
- * 
- * @param str String a verificar
- * @return TRUE se estiver em aspas simples, FALSE caso contrário
- */
-static int is_single_quoted(char *str)
-{
-	size_t          i;
-	t_quote_state   state;
-
-	if (!str)
-		return (FALSE);
+	if (!str || !mini)
+		return (NULL);
+	if (is_single_quoted(str))
+		return (ft_strdup(str));
+	result = NULL;
 	i = 0;
-	if (str[0] != '\'')
-		return (FALSE);
-	state = QUOTE_NONE;
 	while (str[i])
 	{
-		update_quote_state(str[i], &state);
-		i++;
+		if (is_var_start(str[i], str[i + 1]))
+		{
+			value = expand_one_var(&str[i], mini, &i);
+			result = append_to_buffer(result, value);
+			free(value);
+		}
+		else
+			result = append_char_to_buffer(result, str[i++]);
 	}
-	if (state == QUOTE_NONE && str[i - 1] == '\'')
-		return (TRUE);
-	else
-		return (FALSE);
+	return (result);
 }
+
+/*
+** @brief Concatena dinamicamente dois pedaços de string, realocando o buffer.
+**
+** Recebe um buffer base (pode ser NULL) e um pedaço a ser adicionado.
+** Retorna um novo buffer concatenado e libera o antigo.
+**
+** @param base Buffer atual (pode ser NULL)
+** @param add Pedaço a ser adicionado
+** @return Novo buffer concatenado, ou NULL em caso de erro.
+*/
+static char	*append_to_buffer(char *base, const char *add)
+{
+	char	*newbuf;
+	int		len_base;
+	int		len_add;
+
+	len_base = 0;
+	len_add = 0;
+	if (base)
+		len_base = ft_strlen(base);
+	if (add)
+		len_add = ft_strlen(add);
+	newbuf = ft_calloc(len_base + len_add + 1, sizeof(char));
+	if (!newbuf)
+	{
+		free(base);
+		return (NULL);
+	}
+	if (base)
+		ft_strlcpy(newbuf, base, len_base + 1);
+	if (add)
+		ft_strlcat(newbuf, add, len_base + len_add + 1);
+	free(base);
+	return (newbuf);
+}
+
 /*
  * 1. Percorrer lista de tokens
  * 2. Para cada TOKEN_WORD:
@@ -150,7 +149,29 @@ static int is_single_quoted(char *str)
  */
 void	expand_tokens(t_token *tokens, t_mini *mini)
 {
-	// TODO: Implementar
-	(void)tokens;
-	(void)mini;
+	t_token	*curr;
+	char	*expanded;
+
+	if (!tokens || !mini)
+		return ;
+	curr = tokens;
+	while (curr)
+	{
+		if (curr->type == TOKEN_WORD && !is_single_quoted(curr->value))
+		{
+			expanded = expand_string(curr->value, mini);
+			free(curr->value);
+			curr->value = expanded;
+		}
+		else if ((curr->type == TKN_REDIR_HEREDOC || curr->type == TKN_REDIR_OUT
+				|| curr->type == TKN_REDIR_APPEND || curr->type == TKN_REDIR_IN)
+			&& curr->next && curr->next->type == TOKEN_WORD
+			&& !is_single_quoted(curr->next->value))
+		{
+			expanded = expand_string(curr->next->value, mini);
+			free(curr->next->value);
+			curr->next->value = expanded;
+		}
+		curr = curr->next;
+	}
 }

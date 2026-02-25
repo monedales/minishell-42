@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/20 15:06:21 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/25 17:38:44 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,6 +136,10 @@ void		add_token(t_token **head, t_token *new_token);
 
 // Expander - Expansão de variáveis
 void		expand_tokens(t_token *tokens, t_mini *mini);
+int			is_single_quoted(char *str);
+int			is_var_start(char c, char next);
+char		*extract_var_name(char *str, int *len);
+char		*expand_string(char *str, t_mini *mini);
 
 // Parser - Construção da árvore de comandos
 t_cmd		*parser(t_token *tokens);

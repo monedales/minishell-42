@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: mona <mona@student.42.fr>                  +#+  +:+       +#+         #
+#    By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/21 00:00:00 by mona              #+#    #+#              #
-#    Updated: 2026/02/14 17:19:07 by mona             ###   ########.fr        #
+#    Updated: 2026/02/25 17:42:29 by maria-ol         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,6 +46,7 @@ MAIN_SRC = main.c
 # Parsing (Pessoa A)
 PARSING_SRC = lexer.c \
               expander.c \
+			  expander_utils.c \
               parser.c \
               parser_utils.c \
               parser_free.c \
