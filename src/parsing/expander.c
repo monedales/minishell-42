@@ -6,19 +6,22 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/25 17:59:02 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/25 18:02:26 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
 /**
-* @brief Adiciona um caractere ao buffer dinamicamente.
-*
-* @param base Buffer atual (pode ser NULL)
-* @param c Caractere a ser adicionado
-* @return Novo buffer concatenado, ou NULL em caso de erro.
-*/
+ * @brief Adds a character to a dynamic buffer.
+ *
+ * Concatenates a single character to the given buffer, reallocating as needed.
+ * Used to build expanded strings one character at a time.
+ *
+ * @param base Current buffer (can be NULL)
+ * @param c Character to add
+ * @return New buffer with character appended, or NULL on error.
+ */
 static char	*append_char_to_buffer(char *base, char c)
 {
 	char	tmp[2];
@@ -29,15 +32,16 @@ static char	*append_char_to_buffer(char *base, char c)
 }
 
 /**
-* @brief Processa e expande uma variável na string.
-*
-* Extrai o nome, expande o valor e avança o índice.
-*
-* @param str Ponteiro para o início do $VAR
-* @param mini Estrutura principal
-* @param i Ponteiro para índice a ser avançado
-* @return String expandida (malloc), ou NULL
-*/
+ * @brief Expands a variable found in the string.
+ *
+ * Extracts the variable name, expands its value, and advances the index.
+ * Handles special case for $?.
+ *
+ * @param str Pointer to start of $VAR
+ * @param mini Main structure for env and exit status
+ * @param i Pointer to index to advance
+ * @return Expanded value (malloc'd), or NULL.
+ */
 static char	*expand_one_var(char *str, t_mini *mini, int *i)
 {
 	char	*var_name;
@@ -53,22 +57,19 @@ static char	*expand_one_var(char *str, t_mini *mini, int *i)
 }
 
 /**
- * @brief Expande uma variável em uma string
- * 
- * TODO: Implementar expansão
- * - Encontrar todas ocorrências de $VAR
- * - Substituir pelo valor da variável (get_env_value)
- * - Caso especial: $? deve ser substituído por last_exit_status
- * - IMPORTANTE: Não expandir dentro de aspas simples!
- * 
- * EXEMPLO:
- * Input: "Hello $USER" com USER=mona -> "Hello mona"
- * Input: "exit: $?" com status=127 -> "exit: 127"
- * Input: 'Hello $USER' -> 'Hello $USER' (sem expansão!)
- * 
- * @param str String originalnext->
- * @param mini Estrutura principal (para acessar env e exit_status)
- * @return Nova string com variáveis expandidas
+ * @brief Expands all variables in a string, except inside single quotes.
+ *
+ * Iterates through the string, expanding $VAR and $?, building a new string.
+ * Single quotes disable expansion. Uses helpers for buffer and variable logic.
+ *
+ * Example:
+ *   Input: "Hello $USER" with USER=mona -> "Hello mona"
+ *   Input: "exit: $?" with status=127 -> "exit: 127"
+ *   Input: 'Hello $USER' -> 'Hello $USER' (no expansion)
+ *
+ * @param str Original string
+ * @param mini Main structure (for env and exit_status)
+ * @return New string with variables expanded (malloc'd).
  */
 char	*expand_string(char *str, t_mini *mini)
 {
@@ -97,15 +98,15 @@ char	*expand_string(char *str, t_mini *mini)
 }
 
 /**
-* @brief Concatena dinamicamente dois pedaços de string, realocando o buffer.
-*
-* Recebe um buffer base (pode ser NULL) e um pedaço a ser adicionado.
-* Retorna um novo buffer concatenado e libera o antigo.
-*
-* @param base Buffer atual (pode ser NULL)
-* @param add Pedaço a ser adicionado
-* @return Novo buffer concatenado, ou NULL em caso de erro.
-*/
+ * @brief Concatenates two string pieces, reallocating the buffer.
+ *
+ * Receives a base buffer (can be NULL) and a piece to add.
+ * Returns a new buffer with both pieces, freeing the old one.
+ *
+ * @param base Current buffer (can be NULL)
+ * @param add Piece to add
+ * @return New buffer, or NULL on error.
+ */
 static char	*append_to_buffer(char *base, const char *add)
 {
 	char	*newbuf;
@@ -132,20 +133,15 @@ static char	*append_to_buffer(char *base, const char *add)
 	return (newbuf);
 }
 
-/*
- * 1. Percorrer lista de tokens
- * 2. Para cada TOKEN_WORD:
- *    - Verificar se não está em aspas simples
- *    - Expandir variáveis ($VAR, $?)
- *    - Substituir o value do token pela versão expandida
- * 3. Não tocar em tokens que não sejam WORD
- * 
- * ATENÇÃO:
- * - Tokens de redirecionamento não devem ser expandidos!
- * - Apenas o valor após o redirecionamento (nome do arquivo)
- * 
- * @param tokens Lista de tokens a expandir (modificada in-place)
- * @param mini Estrutura principal com env e exit_status
+/**
+ * @brief Expands variables in tokens, including filenames after redirections.
+ *
+ * For each TOKEN_WORD not in single quotes, expands variables. For redirection
+ * tokens, expands the filename if not in single quotes. 
+ * Modifies tokens in-place.
+ *
+ * @param tokens List of tokens to expand (modified in-place)
+ * @param mini Main structure with env and exit_status
  */
 void	expand_tokens(t_token *tokens, t_mini *mini)
 {

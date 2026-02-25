@@ -6,7 +6,7 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/25 17:38:44 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/25 18:05:19 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,6 @@ typedef struct s_env
 	struct s_env	*next;
 }	t_env;
 
-
 // Token node
 typedef struct s_token
 {
@@ -106,7 +105,7 @@ typedef struct s_redir
 	struct s_redir	*next;
 }	t_redir;
 
-// Command node (cada comando da pipeline)
+// Command node (every command's pipeline)
 typedef struct s_cmd
 {
 	char			**args;		// comando + argumentos [cmd, arg1, arg2, NULL]
@@ -128,24 +127,23 @@ typedef struct s_mini
 /*                           PARSING (Pessoa A)                               */
 /* ========================================================================== */
 
-// Lexer - Tokenização
+// Lexer - Tokenization
 t_token		*lexer(char *input);
 void		free_tokens(t_token *tokens);
 t_token		*create_token(t_token_type type, char *value);
 void		add_token(t_token **head, t_token *new_token);
 
-// Expander - Expansão de variáveis
+// Expander - Variable expansion
 void		expand_tokens(t_token *tokens, t_mini *mini);
 int			is_single_quoted(char *str);
 int			is_var_start(char c, char next);
 char		*extract_var_name(char *str, int *len);
 char		*expand_string(char *str, t_mini *mini);
 
-// Parser - Construção da árvore de comandos
+// Parser - Building command lists
 t_cmd		*parser(t_token *tokens);
 t_cmd		*create_cmd_node(void);
 void		add_cmd(t_cmd **head, t_cmd *new);
-t_redir		*create_redir_node(t_token_type type, char *file);
 t_redir		*create_redir_node(t_token_type type, char *file);
 int			count_args(char **args);
 void		add_redir_to_cmd(t_cmd *cmd, t_redir *redir);
@@ -208,7 +206,6 @@ void		handle_sigquit(int sig);
 /*                                  UTILS                                     */
 /* ========================================================================== */
 
-// Utils customizados (libft já tem strlen, strdup, strjoin, strcmp, split, calloc)
 void		free_split(char **split);
 void		safe_free(void **ptr);
 
