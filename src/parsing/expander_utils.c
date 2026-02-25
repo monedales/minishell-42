@@ -6,21 +6,19 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 17:30:48 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/25 17:39:21 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/25 17:54:28 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
 /**
- * @brief Verifica se a string está entre aspas simples
- * 
- * TODO: Implementar verificação
- * - Aspas simples desabilitam TODA expansão
- * - Aspas duplas permitem expansão
- * 
- * @param str String a verificar
- * @return TRUE se estiver em aspas simples, FALSE caso contrário
+ * @brief Checks if a string is enclosed in single quotes.
+ *
+ * Single quotes disable all variable expansion. Double quotes allow expansion.
+ *
+ * @param str String to check
+ * @return TRUE if single quoted, FALSE otherwise
  */
 int	is_single_quoted(char *str)
 {
@@ -45,15 +43,13 @@ int	is_single_quoted(char *str)
 }
 
 /**
- * @brief Verifica se um caractere é o início de uma variável
- * 
- * TODO: Implementar
- * - Retornar TRUE se for '$' seguido de letra, dígito ou '_'
- * - Caso especial: '$?' é sempre uma variável
- * 
- * @param c Caractere atual
- * @param next Próximo caractere
- * @return TRUE se for início de variável, FALSE caso contrário
+ * @brief Checks if a character starts a variable ($VAR or $?).
+ *
+ * Returns TRUE if '$' followed by alphanumeric or '_', or special case '$?'.
+ *
+ * @param c Current character
+ * @param next Next character
+ * @return TRUE if variable start, FALSE otherwise
  */
 int	is_var_start(char c, char next)
 {
@@ -67,19 +63,13 @@ int	is_var_start(char c, char next)
 }
 
 /**
- * @brief Extrai o nome da variável (sem o $)
- * 
- * TODO: Implementar extração
- * - Extrair caracteres válidos (letras, dígitos, underscore)
- * - Caso especial: "?" sozinho (para $?)
- * 
- * EXEMPLO:
- * Input: "$USER_HOME" -> "USER_HOME"
- * Input: "$?" -> "?"
- * 
- * @param str String começando após o '$'
- * @param len Ponteiro para armazenar o tamanho extraído
- * @return Nome da variável extraído
+ * @brief Extracts the variable name from a string after '$'.
+ *
+ * Handles alphanumeric and underscore, special case for '?'.
+ *
+ * @param str String after '$'
+ * @param len Pointer to store extracted length
+ * @return Extracted variable name (malloc'd)
  */
 char	*extract_var_name(char *str, int *len)
 {
@@ -109,13 +99,13 @@ char	*extract_var_name(char *str, int *len)
 }
 
 /*
-** @brief Expande uma variável e retorna o valor expandido.
+** @brief Expands a variable and returns the expanded value.
 **
-** Se for $?, retorna o status. Caso contrário, busca no env.
+** If it's $?, returns the exit status. Otherwise, searches in the environment.
 **
-** @param var_name Nome da variável
-** @param mini Estrutura principal
-** @return Valor expandido (mallocado), ou string vazia se não existir
+** @param var_name Name of the variable
+** @param mini Main structure
+** @return Expanded value (malloc'd), or empty string if not found
 */
 char	*expand_var_value(const char *var_name, t_mini *mini)
 {
