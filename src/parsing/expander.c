@@ -6,18 +6,18 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/25 17:50:38 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/25 17:59:02 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-/*
-** @brief Adiciona um caractere ao buffer dinamicamente.
-**
-** @param base Buffer atual (pode ser NULL)
-** @param c Caractere a ser adicionado
-** @return Novo buffer concatenado, ou NULL em caso de erro.
+/**
+* @brief Adiciona um caractere ao buffer dinamicamente.
+*
+* @param base Buffer atual (pode ser NULL)
+* @param c Caractere a ser adicionado
+* @return Novo buffer concatenado, ou NULL em caso de erro.
 */
 static char	*append_char_to_buffer(char *base, char c)
 {
@@ -28,15 +28,15 @@ static char	*append_char_to_buffer(char *base, char c)
 	return (append_to_buffer(base, tmp));
 }
 
-/*
-** @brief Processa e expande uma variável na string.
-**
-** Extrai o nome, expande o valor e avança o índice.
-**
-** @param str Ponteiro para o início do $VAR
-** @param mini Estrutura principal
-** @param i Ponteiro para índice a ser avançado
-** @return String expandida (malloc), ou NULL
+/**
+* @brief Processa e expande uma variável na string.
+*
+* Extrai o nome, expande o valor e avança o índice.
+*
+* @param str Ponteiro para o início do $VAR
+* @param mini Estrutura principal
+* @param i Ponteiro para índice a ser avançado
+* @return String expandida (malloc), ou NULL
 */
 static char	*expand_one_var(char *str, t_mini *mini, int *i)
 {
@@ -96,15 +96,15 @@ char	*expand_string(char *str, t_mini *mini)
 	return (result);
 }
 
-/*
-** @brief Concatena dinamicamente dois pedaços de string, realocando o buffer.
-**
-** Recebe um buffer base (pode ser NULL) e um pedaço a ser adicionado.
-** Retorna um novo buffer concatenado e libera o antigo.
-**
-** @param base Buffer atual (pode ser NULL)
-** @param add Pedaço a ser adicionado
-** @return Novo buffer concatenado, ou NULL em caso de erro.
+/**
+* @brief Concatena dinamicamente dois pedaços de string, realocando o buffer.
+*
+* Recebe um buffer base (pode ser NULL) e um pedaço a ser adicionado.
+* Retorna um novo buffer concatenado e libera o antigo.
+*
+* @param base Buffer atual (pode ser NULL)
+* @param add Pedaço a ser adicionado
+* @return Novo buffer concatenado, ou NULL em caso de erro.
 */
 static char	*append_to_buffer(char *base, const char *add)
 {
