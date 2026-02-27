@@ -12,14 +12,56 @@
 
 #include "../../include/minishell.h"
 
+int	is_valid_indentifier(char *str)
+{
+	int	i;
 
-// TODO (Pessoa B): Implementar export
-// Usa set_env_value() da Pessoa A
+	if (!str || str[0] == '\0')
+		return (FALSE);
+	if (!ft_isalpha(str[0]) && str[0] != '_')
+		return (FALSE);
+	i = 1;
+	while (str[i] && str[i] != '=')
+	{
+		if (!ft_isalnum(str[i]) && str[i] != '_')
+			return (FALSE);
+		i++;
+	}
+	return (TRUE);
+}
+
+int	export_one_arg(char *arg, t_mini *mini)
+{
+	char	*equal;
+	char	*key;
+	int		ret;
+
+	if (!is_valid_indentifier(arg))
+	{
+		handle_error(ERR_NOT_VALID_ID, "export", arg);
+		return (1);
+	}
+	equal = ft_strchr(arg, '=');
+	if (!eq)
+	{
+		if (!get_env_value(mini->env, arg))
+			set_env_value(&mini->env, arg, NULL);
+		return (SUCCESS);
+	}
+	key = ft_substr(arg, 0, eq - arg);
+	if (!key)
+		return (ERROR);
+	ret = set_env_value(&mini->env, key, eq + 1);
+	free(key);
+	return (ret);
+}
+
+
 void	sort_env(t_env *env)
 {
 	t_env	*i;
 	t_env	*j;
-	char	*temp;
+	char	*tmp;
 
 	i = env;
 	while (i)
@@ -27,7 +69,7 @@ void	sort_env(t_env *env)
 		j = env;
 		while (j && j->next)
 		{
-			if (ft_strncmp(j->key, j->next->key) > 0)
+			if (ft_strncmp(j->key, j->next->key, ft_strlen(j->key) + 1) > 0)
 			{
 				tmp = j->next->key;
 				j->key = j->next->key;
@@ -43,28 +85,36 @@ void	sort_env(t_env *env)
 	}
 }
 
+void	print_export_env(t_env *env)
+{
+	while (env)
+	{
+		if (env->value)
+			ft_printf("declare -x %s=\"%s\"\n", env->key, env->value);
+		else
+			ft_printf("declare -x %s\n", env->key);
+		env = env->next;
+	}
+}
+
 int	builtin_export(char **args, t_mini *mini)
 {
-
-	//int	set_env_value(t_env **env, const char *key, const char *value)
-	// printa a env em ordem alfabetica
 	int		i;
-	t_env	*env;
+	int		ret;
 
-	i = 0;
-	env = mini->env;
-	if (args[1] == NULL)
+	ret = 0;
+	if (!args[1])
 	{
-		env = sort_env(env);
-		print_env(env);
+		sort_env(mini->env);
+		print_export_env(mini->env);
+		return (ret);
 	}
-	else 
+	i = 1;
+	while (args[i])
 	{
-		while (args[i])
-		{
-			split_env_string()	// TODO
-			set_env_value()		// TODO
-		}
+		if (export_one_arg(args[i], mini) != 0)
+			ret = 1;
+		i++;
 	}
-	return (0);
+	return (ret);
 }
