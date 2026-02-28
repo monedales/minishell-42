@@ -6,11 +6,11 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/14 14:29:42 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/27 20:52:09 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
 
 /**
  * @brief Inicializa a estrutura principal do minishell
