@@ -12,7 +12,7 @@
 
 #include "../../include/minishell.h"
 
-int	is_valid_indentifier(char *str)
+static int	is_valid_indentifier_export(char *str)
 {
 	int	i;
 
@@ -36,26 +36,25 @@ int	export_one_arg(char *arg, t_mini *mini)
 	char	*key;
 	int		ret;
 
-	if (!is_valid_indentifier(arg))
+	if (!is_valid_indentifier_export(arg))
 	{
 		handle_error(ERR_NOT_VALID_ID, "export", arg);
 		return (1);
 	}
 	equal = ft_strchr(arg, '=');
-	if (!eq)
+	if (!equal)
 	{
 		if (!get_env_value(mini->env, arg))
 			set_env_value(&mini->env, arg, NULL);
 		return (SUCCESS);
 	}
-	key = ft_substr(arg, 0, eq - arg);
+	key = ft_substr(arg, 0, equal - arg);
 	if (!key)
 		return (ERROR);
-	ret = set_env_value(&mini->env, key, eq + 1);
+	ret = set_env_value(&mini->env, key, equal + 1);
 	free(key);
 	return (ret);
 }
-
 
 void	sort_env(t_env *env)
 {
@@ -74,7 +73,6 @@ void	sort_env(t_env *env)
 				tmp = j->next->key;
 				j->key = j->next->key;
 				j->next->key = tmp;
-			
 				tmp = j->next->value;
 				j->value = j->next->value;
 				j->next->value = tmp;
