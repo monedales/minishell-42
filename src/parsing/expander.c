@@ -3,33 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   expander.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/25 18:02:26 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/27 21:16:39 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
-
-/**
- * @brief Adds a character to a dynamic buffer.
- *
- * Concatenates a single character to the given buffer, reallocating as needed.
- * Used to build expanded strings one character at a time.
- *
- * @param base Current buffer (can be NULL)
- * @param c Character to add
- * @return New buffer with character appended, or NULL on error.
- */
-static char	*append_char_to_buffer(char *base, char c)
-{
-	char	tmp[2];
-
-	tmp[0] = c;
-	tmp[1] = '\0';
-	return (append_to_buffer(base, tmp));
-}
 
 /**
  * @brief Expands a variable found in the string.
@@ -107,7 +88,7 @@ char	*expand_string(char *str, t_mini *mini)
  * @param add Piece to add
  * @return New buffer, or NULL on error.
  */
-static char	*append_to_buffer(char *base, const char *add)
+char	*append_to_buffer(char *base, const char *add)
 {
 	char	*newbuf;
 	int		len_base;
@@ -131,6 +112,25 @@ static char	*append_to_buffer(char *base, const char *add)
 		ft_strlcat(newbuf, add, len_base + len_add + 1);
 	free(base);
 	return (newbuf);
+}
+
+/**
+ * @brief Adds a character to a dynamic buffer.
+ *
+ * Concatenates a single character to the given buffer, reallocating as needed.
+ * Used to build expanded strings one character at a time.
+ *
+ * @param base Current buffer (can be NULL)
+ * @param c Character to add
+ * @return New buffer with character appended, or NULL on error.
+ */
+char	*append_char_to_buffer(char *base, char c)
+{
+	char	tmp[2];
+
+	tmp[0] = c;
+	tmp[1] = '\0';
+	return (append_to_buffer(base, tmp));
 }
 
 /**

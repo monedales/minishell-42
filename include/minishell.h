@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/25 18:05:19 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/02/27 21:18:12 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,16 +137,20 @@ void		add_token(t_token **head, t_token *new_token);
 void		expand_tokens(t_token *tokens, t_mini *mini);
 int			is_single_quoted(char *str);
 int			is_var_start(char c, char next);
+char		*append_to_buffer(char *base, const char *add);
+char		*append_char_to_buffer(char *base, char c);
 char		*extract_var_name(char *str, int *len);
 char		*expand_string(char *str, t_mini *mini);
+char		*expand_var_value(const char *var_name, t_mini *mini);
 
 // Parser - Building command lists
 t_cmd		*parser(t_token *tokens);
 t_cmd		*create_cmd_node(void);
-void		add_cmd(t_cmd **head, t_cmd *new);
 t_redir		*create_redir_node(t_token_type type, char *file);
 int			count_args(char **args);
+int			add_arg_to_cmd(t_cmd *cmd, char *arg);
 void		add_redir_to_cmd(t_cmd *cmd, t_redir *redir);
+void		add_cmd(t_cmd **head, t_cmd *new);
 void		free_redirs(t_redir *redirs);
 void		free_cmd_list(t_cmd *cmd_list);
 
