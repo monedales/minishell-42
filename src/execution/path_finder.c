@@ -13,6 +13,57 @@
 #include "../../include/minishell.h"
 
 /**
+ * @brief Searches for the executable in each directory of PATH.
+ * 
+ * Iterates over the split PATH dirs, builds the full path and
+ * tests with access(). Frees the dirs array before returning.
+ * 
+ * @param dirs  NULL-terminated array of directories from PATH
+ * @param cmd   Command name to look for
+ * @return Full executable path (malloced), or NULL if not found
+ */
+char	*search_in_dirs(char **dirs, char *cmd)
+{
+	char	*tmp;
+	char	*full_path;
+	int		i;
+
+	i = 0;
+	while (dirs[i])
+	{
+		tmp = ft_strjoin(dirs[i], "/");
+		full_path = ft_strjoin(tmp, cmd);
+		free(tmp);
+		if (access(full_path, X_OK))
+		{
+			free_split(dirs);
+			return (full_path);
+		}
+		free(full_path);
+		i++;
+	}
+	free_split(dirs);
+	return (NULL);
+}
+
+/**
+ * @brief Retrieves the PATH value from the environment list.
+ * 
+ * @param env Environment list
+ * @return The value of PATH, or NULL if not found
+ */
+char	*get_path_value(t_env *env)
+{
+	while (env)
+	{
+		if (ft_strncmp(env->key, "PATH", 5) == 0)
+			return (env->value);
+		env = env->next;
+	}
+	return (NULL);
+}
+
+/**
  * @brief Busca o caminho completo de um comando
  * 
  * TODO (Pessoa B): Implementar
@@ -31,47 +82,20 @@
  * @param env Lista de ambiente
  * @return Caminho completo ou NULL se não encontrar
  */
-
-// TODO: diminuir essa funçao 
-char	*find_command_path(char *cmd_name, t_env *env_list)
+char	*find_command_path(char *cmd, t_env *env)
 {
 	char	*path_value;
-	char	**dir;
-	char	*temp;
-	char	*full_path;
-	int		i;
+	char	**dirs;
 
-    if (ft_strchr(cmd_name, '/'))
-    	return (ft_strdup(cmd_name));
-	while (env_list)
-	{			
-		if (ft_strncmp(env_list->key, "PATH", 4) == 0 
-		&& env_list->key[4] == '\0')
-		{
-			path_value = env_list->value;
-			break ;
-		}
-		env_list = env_list->next;
-	}
+	if (!cmd || cmd[0] == '\0')
+		return (NULL);
+    if (ft_strchr(cmd, '/'))
+    	return (ft_strdup(cmd));
+	path_value = get_path_value(env);
 	if (!path_value)
 		return (NULL);
-	temp = ft_strdup(path_value);
-	dir = ft_split(path_value, ':');
-	if (!dir)
-    	return (NULL);
-	i = 0;
-	while (dir[i])
-	{
-		temp = ft_strjoin(dir[i], "/");
-		full_path = ft_strjoin(temp, cmd_name);
-		free(temp);
-		if (access(full_path, X_OK) == 0)
-		{
-			// free_array(dir);
-			return (full_path);
-		}
-		free(full_path);
-		i++;
-	}
-	return (NULL);
+	dirs = ft_split(path_value, ':');
+	if (!dirs)
+	   	return (NULL);
+	return (search_in_dirs(dirs, cmd));
 }
