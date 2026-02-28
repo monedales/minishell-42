@@ -168,7 +168,6 @@ int	execute_simple_cmd(t_cmd *cmd, t_mini *mini)
 {
 	pid_t	pid;
 
-	// cmd->args[0], ' '
 	if (is_builtin(cmd->args[0]) == 1)
 		return (execute_builtin(cmd, mini));
 
@@ -187,22 +186,22 @@ int	execute_simple_cmd(t_cmd *cmd, t_mini *mini)
 	return (1);
 }
 
-// int main (int ac, char **av, char **envp)
-// {
-// 	t_cmd	*cmd;
-// 	char	*args[] = {"echo ", "osasco", NULL};
-// 	cmd->args = args;
-// 	cmd->redirs = NULL;
-// 	cmd->next = NULL;
+int main (int ac, char **av, char **envp)
+{
+	t_cmd	*cmd;
+	char	*args[] = {"env", NULL};
+	cmd->args = args;
+	cmd->redirs = NULL;
+	cmd->next = NULL;
 
-// 	t_mini  *mini =  malloc(sizeof(t_mini));
-// 	mini->env = init_env(envp);
-//     mini->cmd_list = cmd;
-//     mini->last_exit_status = 0;
-// 	mini->running = 1;
+	t_mini  *mini =  malloc(sizeof(t_mini));
+	mini->env = init_env(envp);
+    mini->cmd_list = cmd;
+    mini->last_exit_status = 0;
+	mini->running = 1;
 
-// 	int	exit_statuss = execute_simple_cmd(cmd, mini);
+	int	exit_statuss = execute_simple_cmd(cmd, mini);
 
-// 	printf("%d\n", exit_statuss);
-// 	return 0;	
-// }
+	printf("%d\n", exit_statuss);
+	return 0;	
+}

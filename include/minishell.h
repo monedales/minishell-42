@@ -23,8 +23,8 @@
 # include <sys/stat.h>
 # include <fcntl.h>
 # include <errno.h>
-# include <readline/readline.h>
-# include <readline/history.h>
+//# include <readline/readline.h>
+//# include <readline/history.h>
 # include "../libraries/libft/libft.h"
 
 /* ========================================================================== */
@@ -182,6 +182,8 @@ int			execute_simple_cmd(t_cmd *cmd, t_mini *mini);
 int			execute_pipeline(t_cmd *cmd_list, t_mini *mini);
 char		*find_command_path(char *cmd, t_env *env);
 int			setup_redirections(t_redir *redirs);
+void		print_env(t_env *env);
+
 
 /* ========================================================================== */
 /*                           BUILTINS (Pessoa B)                              */
