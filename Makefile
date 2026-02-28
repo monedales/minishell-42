@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+         #
+#    By: mona <mona@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/21 00:00:00 by mona              #+#    #+#              #
-#    Updated: 2026/02/25 17:42:29 by maria-ol         ###   ########.fr        #
+#    Updated: 2026/02/27 21:30:41 by mona             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -100,9 +100,9 @@ ALL_OBJ = $(MAIN_OBJ) $(PARSING_OBJ) $(ENV_OBJ) $(EXEC_OBJ) \
           $(BUILTIN_OBJ) $(SIGNALS_OBJ) $(UTILS_OBJ)
 
 # Minimal objects for testing env and lexer only
-TEST_SRC = test_main.c
-TEST_OBJ = $(addprefix $(OBJ_DIR)/, $(TEST_SRC:.c=.o))
-TEST_ENV_OBJ = $(TEST_OBJ) $(ENV_OBJ) $(UTILS_OBJ) $(addprefix $(OBJ_DIR)/parsing/, lexer.o tokens.o parser.o parser_utils.o parser_free.o quotes.o)
+# TEST_SRC = test_main.c
+# TEST_OBJ = $(addprefix $(OBJ_DIR)/, $(TEST_SRC:.c=.o))
+# TEST_ENV_OBJ = $(TEST_OBJ) $(ENV_OBJ) $(UTILS_OBJ) $(addprefix $(OBJ_DIR)/parsing/, lexer.o tokens.o parser.o parser_utils.o parser_free.o quotes.o)
 
 # ============================================================================ #
 #                                  RULES                                       #
@@ -120,15 +120,14 @@ $(NAME): $(LIBFT) $(ALL_OBJ)
 	@echo "✅ $(NAME) created successfully!"
 
 # Diretórios necessários
-OBJ_SUBDIRS = $(OBJ_DIR)/parsing $(OBJ_DIR)/env $(OBJ_DIR)/execution $(OBJ_DIR)/builtins $(OBJ_DIR)/signals $(OBJ_DIR)/utils
+OBJ_SUBDIRS = $(OBJ_DIR)/parsing/ $(OBJ_DIR)/env $(OBJ_DIR)/execution $(OBJ_DIR)/builtins $(OBJ_DIR)/signals $(OBJ_DIR)/utils
 
 # Garante que todos os subdiretórios existem antes de compilar qualquer objeto
-.PRECIOUS: $(OBJ_SUBDIRS)
+$(OBJ_DIR):
+	@mkdir -p $(OBJ_DIR) $(OBJ_SUBDIRS)
+
 $(OBJ_SUBDIRS):
 	@mkdir -p $@
-
-$(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)
 
 # Main
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
