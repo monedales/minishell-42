@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/04 21:46:03 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
  * letters, digits, or '_' only. Unlike export, unset never
  * accepts '=' in the argument.
  * 
- * @param str The argument string
+ * @param args The argument string
  * @return TRUE if valid, FALSE otherwise
  */
 static int	is_valid_identifier_unset(char *args)

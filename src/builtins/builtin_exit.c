@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/04 21:37:43 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,6 @@ int	is_numeric(const char *str)
  *   exit <str>    → prints "numeric argument required", exits with 2
  *   exit <n> <m>  → prints "too many arguments", returns 1 (does NOT exit)
  * 
- * Prints "exit" to stderr before exiting, like bash.
  * Frees the environment before calling exit().
  * 
  * @param args NULL-terminated argument array (args[0] == "exit")
