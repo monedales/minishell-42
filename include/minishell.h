@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/03/04 20:46:21 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/04 22:11:16 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,9 +204,10 @@ int			builtin_exit(char **args, t_mini *mini);
 /*                             SIGNALS (Pessoa B)                             */
 /* ========================================================================== */
 
+extern volatile sig_atomic_t	g_signal;
+
 void		setup_signals(void);
 void		handle_sigint(int sig);
-void		handle_sigquit(int sig);
 
 /* ========================================================================== */
 /*                                  UTILS                                     */
