@@ -73,7 +73,7 @@ void	exec_child(t_cmd *cmd, t_mini *mini)
 	execve(cmd_path, cmd->args, env_array);
 	handle_error(ERR_PERMISSION, cmd->args[0], 0);
 	free(cmd_path);
-	free_split(env_array);
+	free_array(env_array);
 	exit(126);
 }
 

@@ -34,10 +34,10 @@ int	execute_cmd_list(t_cmd *cmd_list, t_mini *mini)
 	command = cmd_list->args[0];
 	if (is_builtin(command) == 1)
 		execute_builtin(cmd_list, mini);
-	/*
 	else if (command && cmd_list->next == NULL)
 		execute_simple_cmd(cmd_list, mini);
-	else
+	else	
+	/*
 		execute_pipeline(cmd_list, mini);
 	*/
 	return (0);
