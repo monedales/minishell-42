@@ -6,118 +6,168 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/02/27 21:16:39 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
 
 /**
- * @brief Verifica se um caractere é o início de uma variável
- * 
- * TODO: Implementar
- * - Retornar TRUE se for '$' seguido de letra, dígito ou '_'
- * - Caso especial: '$?' é sempre uma variável
- * 
- * @param c Caractere atual
- * @param next Próximo caractere
- * @return TRUE se for início de variável, FALSE caso contrário
+ * @brief Expands a variable found in the string.
+ *
+ * Extracts the variable name, expands its value, and advances the index.
+ * Handles special case for $?.
+ *
+ * @param str Pointer to start of $VAR
+ * @param mini Main structure for env and exit status
+ * @param i Pointer to index to advance
+ * @return Expanded value (malloc'd), or NULL.
  */
-static int	is_var_start(char c, char next)
+static char	*expand_one_var(char *str, t_mini *mini, int *i)
 {
-	// TODO: Implementar
-	(void)c;
-	(void)next;
-	return (FALSE);
+	char	*var_name;
+	char	*value;
+	int		len;
+
+	len = 0;
+	var_name = extract_var_name(str + 1, &len);
+	value = expand_var_value(var_name, mini);
+	free(var_name);
+	*i += len + 1;
+	return (value);
 }
 
 /**
- * @brief Extrai o nome da variável (sem o $)
- * 
- * TODO: Implementar extração
- * - Extrair caracteres válidos (letras, dígitos, underscore)
- * - Caso especial: "?" sozinho (para $?)
- * 
- * EXEMPLO:
- * Input: "$USER_HOME" -> "USER_HOME"
- * Input: "$?" -> "?"
- * 
- * @param str String começando após o '$'
- * @param len Ponteiro para armazenar o tamanho extraído
- * @return Nome da variável extraído
+ * @brief Expands all variables in a string, except inside single quotes.
+ *
+ * Iterates through the string, expanding $VAR and $?, building a new string.
+ * Single quotes disable expansion. Uses helpers for buffer and variable logic.
+ *
+ * Example:
+ *   Input: "Hello $USER" with USER=mona -> "Hello mona"
+ *   Input: "exit: $?" with status=127 -> "exit: 127"
+ *   Input: 'Hello $USER' -> 'Hello $USER' (no expansion)
+ *
+ * @param str Original string
+ * @param mini Main structure (for env and exit_status)
+ * @return New string with variables expanded (malloc'd).
  */
-static char	*extract_var_name(char *str, int *len)
+char	*expand_string(char *str, t_mini *mini)
 {
-	// TODO: Implementar
-	(void)str;
-	(void)len;
-	return (NULL);
+	char	*result;
+	int		i;
+	char	*value;
+
+	if (!str || !mini)
+		return (NULL);
+	if (is_single_quoted(str))
+		return (ft_strdup(str));
+	result = NULL;
+	i = 0;
+	while (str[i])
+	{
+		if (is_var_start(str[i], str[i + 1]))
+		{
+			value = expand_one_var(&str[i], mini, &i);
+			result = append_to_buffer(result, value);
+			free(value);
+		}
+		else
+			result = append_char_to_buffer(result, str[i++]);
+	}
+	return (result);
 }
 
 /**
- * @brief Expande uma variável em uma string
- * 
- * TODO: Implementar expansão
- * - Encontrar todas ocorrências de $VAR
- * - Substituir pelo valor da variável (get_env_value)
- * - Caso especial: $? deve ser substituído por last_exit_status
- * - IMPORTANTE: Não expandir dentro de aspas simples!
- * 
- * EXEMPLO:
- * Input: "Hello $USER" com USER=mona -> "Hello mona"
- * Input: "exit: $?" com status=127 -> "exit: 127"
- * Input: 'Hello $USER' -> 'Hello $USER' (sem expansão!)
- * 
- * @param str String original
- * @param mini Estrutura principal (para acessar env e exit_status)
- * @return Nova string com variáveis expandidas
+ * @brief Concatenates two string pieces, reallocating the buffer.
+ *
+ * Receives a base buffer (can be NULL) and a piece to add.
+ * Returns a new buffer with both pieces, freeing the old one.
+ *
+ * @param base Current buffer (can be NULL)
+ * @param add Piece to add
+ * @return New buffer, or NULL on error.
  */
-static char	*expand_string(char *str, t_mini *mini)
+char	*append_to_buffer(char *base, const char *add)
 {
-	// TODO: Implementar
-	(void)str;
-	(void)mini;
-	return (NULL);
+	char	*newbuf;
+	int		len_base;
+	int		len_add;
+
+	len_base = 0;
+	len_add = 0;
+	if (base)
+		len_base = ft_strlen(base);
+	if (add)
+		len_add = ft_strlen(add);
+	newbuf = ft_calloc(len_base + len_add + 1, sizeof(char));
+	if (!newbuf)
+	{
+		free(base);
+		return (NULL);
+	}
+	if (base)
+		ft_strlcpy(newbuf, base, len_base + 1);
+	if (add)
+		ft_strlcat(newbuf, add, len_base + len_add + 1);
+	free(base);
+	return (newbuf);
 }
 
 /**
- * @brief Verifica se a string está entre aspas simples
- * 
- * TODO: Implementar verificação
- * - Aspas simples desabilitam TODA expansão
- * - Aspas duplas permitem expansão
- * 
- * @param str String a verificar
- * @return TRUE se estiver em aspas simples, FALSE caso contrário
+ * @brief Adds a character to a dynamic buffer.
+ *
+ * Concatenates a single character to the given buffer, reallocating as needed.
+ * Used to build expanded strings one character at a time.
+ *
+ * @param base Current buffer (can be NULL)
+ * @param c Character to add
+ * @return New buffer with character appended, or NULL on error.
  */
-static int	is_single_quoted(char *str)
+char	*append_char_to_buffer(char *base, char c)
 {
-	// TODO: Implementar
-	(void)str;
-	return (FALSE);
+	char	tmp[2];
+
+	tmp[0] = c;
+	tmp[1] = '\0';
+	return (append_to_buffer(base, tmp));
 }
 
 /**
- * @brief Expande variáveis em todos os tokens
- * 
- * ESTRATÉGIA:
- * 1. Percorrer lista de tokens
- * 2. Para cada TOKEN_WORD:
- *    - Verificar se não está em aspas simples
- *    - Expandir variáveis ($VAR, $?)
- *    - Substituir o value do token pela versão expandida
- * 3. Não tocar em tokens que não sejam WORD
- * 
- * ATENÇÃO:
- * - Tokens de redirecionamento não devem ser expandidos!
- * - Apenas o valor após o redirecionamento (nome do arquivo)
- * 
- * @param tokens Lista de tokens a expandir (modificada in-place)
- * @param mini Estrutura principal com env e exit_status
+ * @brief Expands variables in tokens, including filenames after redirections.
+ *
+ * For each TOKEN_WORD not in single quotes, expands variables. For redirection
+ * tokens, expands the filename if not in single quotes. 
+ * Modifies tokens in-place.
+ *
+ * @param tokens List of tokens to expand (modified in-place)
+ * @param mini Main structure with env and exit_status
  */
 void	expand_tokens(t_token *tokens, t_mini *mini)
 {
-	// TODO: Implementar
-	(void)tokens;
-	(void)mini;
+	t_token	*curr;
+	char	*expanded;
+
+	if (!tokens || !mini)
+		return ;
+	curr = tokens;
+	while (curr)
+	{
+		if (curr->type == TOKEN_WORD && !is_single_quoted(curr->value))
+		{
+			expanded = expand_string(curr->value, mini);
+			free(curr->value);
+			curr->value = expanded;
+		}
+		else if ((curr->type == TKN_REDIR_HEREDOC || curr->type == TKN_REDIR_OUT
+				|| curr->type == TKN_REDIR_APPEND || curr->type == TKN_REDIR_IN)
+			&& curr->next && curr->next->type == TOKEN_WORD
+			&& !is_single_quoted(curr->next->value))
+		{
+			expanded = expand_string(curr->next->value, mini);
+			free(curr->next->value);
+			curr->next->value = expanded;
+		}
+		curr = curr->next;
+	}
 }
