@@ -6,7 +6,7 @@
 #    By: mona <mona@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/21 00:00:00 by mona              #+#    #+#              #
-#    Updated: 2026/02/14 17:19:07 by mona             ###   ########.fr        #
+#    Updated: 2026/03/04 22:16:13 by mona             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,18 @@ LIBFT_DIR = libraries/libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 INCLUDES = -I include -I $(LIBFT_DIR)
-LIBS = -lreadline -L$(LIBFT_DIR) -lft
+
+# On macOS, Homebrew's GNU readline must be used explicitly because the
+# system ships libedit instead, which lacks rl_replace_line and other symbols.
+# On Linux (42 school), the default -lreadline links to full GNU readline.
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+    READLINE_PREFIX := $(shell brew --prefix readline 2>/dev/null)
+    INCLUDES += -I$(READLINE_PREFIX)/include
+    LIBS = -L$(READLINE_PREFIX)/lib -lreadline -L$(LIBFT_DIR) -lft
+else
+    LIBS = -lreadline -L$(LIBFT_DIR) -lft
+endif
 
 # ============================================================================ #
 #                                DIRECTORIES                                   #
@@ -46,6 +57,7 @@ MAIN_SRC = main.c
 # Parsing (Pessoa A)
 PARSING_SRC = lexer.c \
               expander.c \
+			  expander_utils.c \
               parser.c \
               parser_utils.c \
               parser_free.c \
@@ -98,11 +110,6 @@ UTILS_OBJ = $(addprefix $(OBJ_DIR)/utils/, $(UTILS_SRC:.c=.o))
 ALL_OBJ = $(MAIN_OBJ) $(PARSING_OBJ) $(ENV_OBJ) $(EXEC_OBJ) \
           $(BUILTIN_OBJ) $(SIGNALS_OBJ) $(UTILS_OBJ)
 
-# Minimal objects for testing env and lexer only
-TEST_SRC = test_main.c
-TEST_OBJ = $(addprefix $(OBJ_DIR)/, $(TEST_SRC:.c=.o))
-TEST_ENV_OBJ = $(TEST_OBJ) $(ENV_OBJ) $(UTILS_OBJ) $(addprefix $(OBJ_DIR)/parsing/, lexer.o tokens.o parser.o parser_utils.o parser_free.o quotes.o)
-
 # ============================================================================ #
 #                                  RULES                                       #
 # ============================================================================ #
@@ -119,15 +126,14 @@ $(NAME): $(LIBFT) $(ALL_OBJ)
 	@echo "✅ $(NAME) created successfully!"
 
 # Diretórios necessários
-OBJ_SUBDIRS = $(OBJ_DIR)/parsing $(OBJ_DIR)/env $(OBJ_DIR)/execution $(OBJ_DIR)/builtins $(OBJ_DIR)/signals $(OBJ_DIR)/utils
+OBJ_SUBDIRS = $(OBJ_DIR)/parsing/ $(OBJ_DIR)/env $(OBJ_DIR)/execution $(OBJ_DIR)/builtins $(OBJ_DIR)/signals $(OBJ_DIR)/utils
 
 # Garante que todos os subdiretórios existem antes de compilar qualquer objeto
-.PRECIOUS: $(OBJ_SUBDIRS)
+$(OBJ_DIR):
+	@mkdir -p $(OBJ_DIR) $(OBJ_SUBDIRS)
+
 $(OBJ_SUBDIRS):
 	@mkdir -p $@
-
-$(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)
 
 # Main
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
@@ -193,11 +199,5 @@ test: $(NAME)
 valgrind: $(NAME)
 	@echo "🔍 Running valgrind..."
 	@valgrind --suppressions=include/valgrind.sup --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
-
-# Target para testar apenas env (para desenvolvimento incremental)
-test_env: $(LIBFT) $(TEST_ENV_OBJ)
-	@echo "🔗 Linking test_env..."
-	@$(CC) $(CFLAGS) $(TEST_ENV_OBJ) $(LIBS) -o test_env
-	@echo "✅ test_env created! Run with: ./test_env"
 
 .PHONY: all clean fclean re norm test valgrind test_env

@@ -6,11 +6,11 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/14 14:29:42 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/04 22:11:05 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../../include/minishell.h"
 
 /**
  * @brief Inicializa a estrutura principal do minishell
@@ -82,7 +82,12 @@ static void	repl_loop(t_mini *mini)
 			printf("exit\n");
 			break ;
 		}
-		
+		// Ctrl-C: atualiza $? e reinicia o loop
+		if (g_signal == 130)
+		{
+			mini->last_exit_status = 130;
+			g_signal = 0;
+		}
 		// Linha vazia
 		if (*line == '\0')
 		{

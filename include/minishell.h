@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/19 22:02:04 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/04 22:11:16 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,6 @@ typedef struct s_env
 	struct s_env	*next;
 }	t_env;
 
-
 // Token node
 typedef struct s_token
 {
@@ -106,7 +105,7 @@ typedef struct s_redir
 	struct s_redir	*next;
 }	t_redir;
 
-// Command node (cada comando da pipeline)
+// Command node (every command's pipeline)
 typedef struct s_cmd
 {
 	char			**args;		// comando + argumentos [cmd, arg1, arg2, NULL]
@@ -128,23 +127,30 @@ typedef struct s_mini
 /*                           PARSING (Pessoa A)                               */
 /* ========================================================================== */
 
-// Lexer - Tokenização
+// Lexer - Tokenization
 t_token		*lexer(char *input);
 void		free_tokens(t_token *tokens);
 t_token		*create_token(t_token_type type, char *value);
 void		add_token(t_token **head, t_token *new_token);
 
-// Expander - Expansão de variáveis
+// Expander - Variable expansion
 void		expand_tokens(t_token *tokens, t_mini *mini);
+int			is_single_quoted(char *str);
+int			is_var_start(char c, char next);
+char		*append_to_buffer(char *base, const char *add);
+char		*append_char_to_buffer(char *base, char c);
+char		*extract_var_name(char *str, int *len);
+char		*expand_string(char *str, t_mini *mini);
+char		*expand_var_value(const char *var_name, t_mini *mini);
 
-// Parser - Construção da árvore de comandos
+// Parser - Building command lists
 t_cmd		*parser(t_token *tokens);
 t_cmd		*create_cmd_node(void);
-void		add_cmd(t_cmd **head, t_cmd *new);
-t_redir		*create_redir_node(t_token_type type, char *file);
 t_redir		*create_redir_node(t_token_type type, char *file);
 int			count_args(char **args);
+int			add_arg_to_cmd(t_cmd *cmd, char *arg);
 void		add_redir_to_cmd(t_cmd *cmd, t_redir *redir);
+void		add_cmd(t_cmd **head, t_cmd *new);
 void		free_redirs(t_redir *redirs);
 void		free_cmd_list(t_cmd *cmd_list);
 
@@ -152,6 +158,7 @@ void		free_cmd_list(t_cmd *cmd_list);
 char		*remove_quotes(char *str);
 int			is_in_quotes(char *str, int pos, t_quote_state *state);
 int			validate_quotes(char *str);
+void		update_quote_state(char c, t_quote_state *state);
 
 /* ========================================================================== */
 /*                           ENVIRONMENT (Pessoa A)                           */
@@ -175,6 +182,8 @@ int			execute_simple_cmd(t_cmd *cmd, t_mini *mini);
 int			execute_pipeline(t_cmd *cmd_list, t_mini *mini);
 char		*find_command_path(char *cmd, t_env *env);
 int			setup_redirections(t_redir *redirs);
+void		print_env(t_env *env);
+
 
 /* ========================================================================== */
 /*                           BUILTINS (Pessoa B)                              */
@@ -195,15 +204,15 @@ int			builtin_exit(char **args, t_mini *mini);
 /*                             SIGNALS (Pessoa B)                             */
 /* ========================================================================== */
 
+extern volatile sig_atomic_t	g_signal;
+
 void		setup_signals(void);
 void		handle_sigint(int sig);
-void		handle_sigquit(int sig);
 
 /* ========================================================================== */
 /*                                  UTILS                                     */
 /* ========================================================================== */
 
-// Utils customizados (libft já tem strlen, strdup, strjoin, strcmp, split, calloc)
 void		free_split(char **split);
 void		safe_free(void **ptr);
 
