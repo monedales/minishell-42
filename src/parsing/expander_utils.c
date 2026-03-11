@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   expander_utils.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 17:30:48 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/25 17:54:28 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/04 21:28:07 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,14 +98,14 @@ char	*extract_var_name(char *str, int *len)
 	return (var_name);
 }
 
-/*
-** @brief Expands a variable and returns the expanded value.
-**
-** If it's $?, returns the exit status. Otherwise, searches in the environment.
-**
-** @param var_name Name of the variable
-** @param mini Main structure
-** @return Expanded value (malloc'd), or empty string if not found
+/**
+* @brief Expands a variable and returns the expanded value.
+*
+* If it's $?, returns the exit status. Otherwise, searches in the environment.
+*
+* @param var_name Name of the variable
+* @param mini Main structure
+* @return Expanded value (malloc'd), or empty string if not found
 */
 char	*expand_var_value(const char *var_name, t_mini *mini)
 {

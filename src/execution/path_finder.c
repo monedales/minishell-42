@@ -34,15 +34,15 @@ char	*search_in_dirs(char **dirs, char *cmd)
 		tmp = ft_strjoin(dirs[i], "/");
 		full_path = ft_strjoin(tmp, cmd);
 		free(tmp);
-		if (access(full_path, X_OK))
+		if (access(full_path, X_OK) == 0)
 		{
-			free_split(dirs);
+			free_array(dirs);
 			return (full_path);
 		}
 		free(full_path);
 		i++;
 	}
-	free_split(dirs);
+	free_array(dirs);
 	return (NULL);
 }
 
@@ -89,8 +89,8 @@ char	*find_command_path(char *cmd, t_env *env)
 
 	if (!cmd || cmd[0] == '\0')
 		return (NULL);
-    if (ft_strchr(cmd, '/'))
-    	return (ft_strdup(cmd));
+	if (ft_strchr(cmd, '/'))
+		return (ft_strdup(cmd));
 	path_value = get_path_value(env);
 	if (!path_value)
 		return (NULL);

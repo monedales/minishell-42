@@ -1,48 +1,59 @@
-# 🐚 Minishell - Projeto 42
+*This project was created as part of the 42 curriculum by mona, maria-ol.*
 
-> **Implementação de um shell Unix minimalista em C**
+# 🐚 Minishell
 
-## 📌 Sobre o Projeto
+> A minimalist Unix shell interpreter built in C, replicating core bash behavior.
 
-O minishell é um dos projetos mais desafiadores da 42 School. Você vai criar seu próprio interpretador de comandos (como bash), implementando parsing de entrada, execução de processos, pipes, redirecionamentos e built-ins.
+---
 
-## 🏗️ Estrutura do Projeto
+## Description
+
+Minishell is one of the most complex projects in the 42 curriculum. The goal is to
+build a functional command-line interpreter from scratch in C, without relying on
+any existing shell implementation.
+
+The shell reads user input, tokenizes it, expands variables, parses the command
+structure, and executes commands — reproducing bash's behavior for the supported
+feature set. It handles pipelines, redirections, environment variables, signal
+processing, and seven built-in commands.
+
+**Key challenge:** Correctly managing process creation with `fork`/`execve`,
+inter-process communication via pipes, an isolated environment variable store as
+a doubly linked list, and signal handling that precisely matches bash's interactive
+behavior.
+
+## Project Structure
 
 ```
 minishell/
-├── 📄 Makefile                   # Sistema de build
-├── 📄 README.md                  # Este arquivo
-├── 📄 PROJECT_STRUCTURE.md       # Documentação detalhada da estrutura
-├── 📄 PESSOA_A_GUIDE.md          # Guia específico para Pessoa A
-│
-├── 📂 include/
-│   └── minishell.h               # Header principal com todas structs e protótipos
-│
-├── 📂 src/
+├── Makefile
+├── include/
+│   └── minishell.h               # All structs, enums and prototypes
+├── src/
 │   ├── main.c                    # Entry point + REPL loop
-│   │
-│   ├── 📂 parsing/               # 🔵 PESSOA A
-│   │   ├── lexer.c               # Tokenização
-│   │   ├── expander.c            # Expansão de variáveis ($VAR, $?)
-│   │   ├── parser.c              # Construção da árvore de comandos
-│   │   └── quotes.c              # Manipulação de aspas
-│   │
-│   ├── 📂 env/                   # 🔵 PESSOA A
-│   │   ├── env_init.c            # Inicialização do ambiente
-│   │   ├── env_get.c             # Buscar variável
-│   │   ├── env_set.c             # Adicionar/modificar variável
-│   │   ├── env_unset.c           # Remover variável
-│   │   └── env_utils.c           # Conversão para array, print, etc
-│   │
-│   ├── 📂 execution/             # 🟢 PESSOA B
-│   │   ├── executor.c            # Dispatcher principal
-│   │   ├── executor_simple.c     # Comando simples
-│   │   ├── executor_pipeline.c   # Pipeline (pipes)
-│   │   ├── path_finder.c         # Busca no PATH
-│   │   └── redirections.c        # Setup de redirecionamentos
-│   │
-│   ├── 📂 builtins/              # 🟢 PESSOA B
-│   │   ├── builtin_checker.c     # Verifica se é builtin
+│   ├── parsing/
+│   │   ├── lexer.c               # Tokenization
+│   │   ├── expander.c            # Variable expansion ($VAR, $?)
+│   │   ├── expander_utils.c      # Buffer helpers for expander
+│   │   ├── parser.c              # Command list construction + syntax validation
+│   │   ├── parser_utils.c        # Argument and redirection helpers
+│   │   ├── parser_free.c         # Memory cleanup for parser structures
+│   │   ├── quotes.c              # Quote state machine and removal
+│   │   └── tokens.c              # Token node creation and list management
+│   ├── env/
+│   │   ├── env_init.c            # Parse envp into t_env linked list
+│   │   ├── env_get.c             # Lookup variable by key
+│   │   ├── env_set.c             # Set or update variable
+│   │   ├── env_unset.c           # Remove variable
+│   │   └── env_utils.c           # Convert to char**, print
+│   ├── execution/
+│   │   ├── executor.c            # Main dispatcher
+│   │   ├── executor_simple.c     # Single command via fork/execve
+│   │   ├── executor_pipeline.c   # Multi-command pipeline with pipes
+│   │   ├── path_finder.c         # Resolve command via PATH
+│   │   └── redirections.c        # File descriptor setup for redirections
+│   ├── builtins/
+│   │   ├── builtin_checker.c     # is_builtin() and execute_builtin()
 │   │   ├── builtin_echo.c
 │   │   ├── builtin_cd.c
 │   │   ├── builtin_pwd.c
@@ -50,215 +61,149 @@ minishell/
 │   │   ├── builtin_unset.c
 │   │   ├── builtin_env.c
 │   │   └── builtin_exit.c
-│   │
-│   ├── 📂 signals/               # 🟢 PESSOA B
-│   │   └── signals.c             # Ctrl-C, Ctrl-\, Ctrl-D
-│   │
-│   └── 📂 utils/                 # 🟡 AMBOS
-│       ├── ft_strlen.c
-│       ├── ft_strdup.c
-│       ├── ft_strjoin.c
-│       ├── ft_strcmp.c
-│       ├── ft_split.c
-│       ├── ft_calloc.c
-│       ├── error_utils.c
-│       └── free_utils.c
-│
-└── 📂 obj/                       # Arquivos objeto (gitignored)
+│   ├── signals/
+│   │   └── signals.c             # SIGINT and SIGQUIT handlers
+│   └── utils/
+│       ├── error_utils.c         # Bash-style error messages
+│       └── free_utils.c          # Memory release helpers
+└── libraries/
+    └── libft/                    # Custom C library
 ```
 
-## 🚀 Quick Start
+## Instructions
+
+### Requirements
+
+- GCC or Clang
+- GNU readline (`brew install readline` on macOS, pre-installed on Linux)
+- make
+
+### Building
 
 ```bash
-# Clonar o repositório
-git clone <repo-url>
+# Clone the repository
+git clone <repository-url>
 cd minishell
 
-# IMPORTANTE: Adicionar sua libft ao projeto
-# Veja LIBFT_SETUP.md para instruções detalhadas
-cp -r /caminho/para/sua/libft ./libft
-# OU
-ln -s /caminho/para/sua/libft ./libft
-
-# Compilar
+# Compile
 make
 
-# Executar
+# Rebuild from scratch
+make re
+
+# Clean object files
+make clean
+
+# Full clean (objects + binary)
+make fclean
+```
+
+> **macOS note:** The Makefile automatically detects the OS and links against
+> Homebrew's GNU readline instead of the system's libedit.
+
+### Running
+
+```bash
 ./minishell
+```
 
-# Testar comandos básicos
-minishell$ echo "Hello World"
-minishell$ ls -la | grep mini
-minishell$ export VAR=42
-minishell$ echo $VAR
+### Usage Examples
 
-# Sair
+```bash
+minishell$ echo "Hello, $USER"
+minishell$ ls -la | grep .c
+minishell$ export VAR=42 && echo $VAR
+minishell$ echo "test" > file.txt && cat < file.txt
+minishell$ echo $?          # last exit status
 minishell$ exit
 ```
 
-## 🎯 Features Implementadas
-
-### ✅ Comandos e Execução
-- [x] Prompt interativo com readline
-- [x] Histórico de comandos
-- [x] Busca e execução de binários via PATH
-- [x] Caminhos relativos e absolutos
-
-### ✅ Redirecionamentos
-- [x] `<` - Redirecionamento de entrada
-- [x] `>` - Redirecionamento de saída
-- [x] `>>` - Append
-- [x] `<<` - Heredoc
-
-### ✅ Pipes
-- [x] Suporte a múltiplos pipes: `cmd1 | cmd2 | cmd3`
-
-### ✅ Variáveis
-- [x] Expansão de variáveis: `$VAR`
-- [x] Exit status: `$?`
-- [x] Aspas simples (sem expansão)
-- [x] Aspas duplas (com expansão)
-
-### ✅ Built-ins
-- [x] `echo` (com opção `-n`)
-- [x] `cd` (caminho relativo/absoluto/home)
-- [x] `pwd`
-- [x] `export`
-- [x] `unset`
-- [x] `env`
-- [x] `exit`
-
-### ✅ Sinais
-- [x] Ctrl-C: Nova linha
-- [x] Ctrl-D: Sair (EOF)
-- [x] Ctrl-\: Nada
-
-## 🧪 Testes
-
-```bash
-# Verificar norminette
-make norm
-
-# Testar com valgrind
-make valgrind
-
-# Executar testes manuais
-./minishell
-```
-
-### Casos de Teste Importantes
-
-```bash
-# 1. Comandos simples
-ls -la
-pwd
-echo test
-
-# 2. Pipes
-ls | grep mini
-cat file.txt | head -5 | tail -2
-
-# 3. Redirecionamentos
-echo "test" > file.txt
-cat < file.txt
-echo "append" >> file.txt
-
-# 4. Variáveis
-echo $HOME
-export TEST=value
-echo $TEST
-unset TEST
-
-# 5. Aspas
-echo 'single $USER quotes'
-echo "double $USER quotes"
-
-# 6. Exit status
-ls nonexistent
-echo $?
-
-# 7. Heredoc
-cat << EOF
-line 1
-line 2
-EOF
-```
-
-## 📚 Documentação
-
-- [LIBFT_SETUP.md](LIBFT_SETUP.md) - ⚙️ Como adicionar a libft ao projeto
-- [GIT_BRANCHES_GUIDE.md](GIT_BRANCHES_GUIDE.md) - 🌿 Guia completo de branches para trabalho em dupla
-- [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - Estrutura detalhada e divisão de tarefas
-- [PESSOA_A_GUIDE.md](PESSOA_A_GUIDE.md) - 🔵 Guia completo para Pessoa A (Parsing & Ambiente)
-- [PESSOA_B_GUIDE.md](PESSOA_B_GUIDE.md) - 🟢 Guia completo para Pessoa B (Execução & Sistema)
-- [include/minishell.h](include/minishell.h) - Todas as structs e protótipos
-
-## 🤝 Divisão de Trabalho
-
-### 🔵 Pessoa A - Parsing & Organização
-- Gerenciamento de ambiente (env)
-- Lexer (tokenização)
-- Expander (expansão de variáveis)
-- Parser (construção de comandos)
-- Manipulação de aspas
-
-### 🟢 Pessoa B - Execução & Sistema
-- Executor (fork, execve, wait)
-- Pipes
-- Redirecionamentos
-- Built-ins
-- Sinais
-
-## ⚠️ Notas Importantes
-
-### Memory Leaks
-```bash
-valgrind --leak-check=full --show-leak-kinds=all ./minishell
-```
-
-### File Descriptors
-Sempre feche FDs abertos com `close()`. Use `lsof -p <pid>` para debugar.
-
 ### Norminette
-```bash
-norminette include/ src/
-```
-
-## 📖 Recursos Úteis
-
-- `man bash`
-- `man readline`
-- `man execve`
-- `man fork`
-- `man pipe`
-- `man dup2`
-- [Bash Reference Manual](https://www.gnu.org/software/bash/manual/)
-
-## 🐛 Debugging Tips
 
 ```bash
-# Verificar processos
-ps aux | grep minishell
-
-# Verificar FDs abertos
-lsof -p $(pgrep minishell)
-
-# Debugar com gdb
-gdb ./minishell
-
-# Verificar memory leaks
-valgrind --leak-check=full ./minishell
+norminette src/ include/
 ```
 
-## 👥 Autores
+### Valgrind
 
-- **Pessoa A**: [Seu nome] - Parsing & Organização
-- **Pessoa B**: [Nome do parceiro] - Execução & Sistema
+```bash
+valgrind --leak-check=full --show-leak-kinds=all \
+         --suppressions=include/valgrind.sup \
+         ./minishell
+```
 
-## 📄 Licença
 
-Este projeto faz parte do currículo da 42 School.
+
+
+# Sair
+```
+minishell$ exit
+```
+
+## Features
+
+| Category | Feature |
+|---|---|
+| **Execution** | Interactive prompt, command history, PATH resolution |
+| **Redirections** | `<` input, `>` output, `>>` append, `<<` heredoc |
+| **Pipelines** | Multiple commands: `cmd1 \| cmd2 \| cmd3` |
+| **Variables** | `$VAR` expansion, `$?` exit status |
+| **Quotes** | Single quotes (no expansion), double quotes (with expansion) |
+| **Built-ins** | `echo -n`, `cd`, `pwd`, `export`, `unset`, `env`, `exit` |
+| **Signals** | Ctrl+C new prompt, Ctrl+D exit, Ctrl+\ ignored |
 
 ---
 
-**Boa sorte e bom código!** 🚀
+## Resources
+
+### Shell and Bash
+
+- [What is Bash?](https://opensource.com/resources/what-bash) — Accessible introduction
+  to what a shell is and the role of bash
+- [Bash in 100 Seconds](https://www.youtube.com/watch?v=TJzltwv7jJs) — Quick visual
+  overview of how the shell works
+- [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/) — Full
+  specification of bash behavior (the ground truth for this project)
+- `man bash` — Especially sections: EXPANSION, REDIRECTION, SIGNALS
+
+### Readline
+
+- [GNU Readline Library — Command Line Editing](https://web.mit.edu/gnu/doc/html/rlman_2.html#SEC31)
+  — API reference for readline, `rl_on_new_line`, `rl_replace_line`, `add_history`
+
+### System calls
+
+- `man 2 fork`, `man 3 execve`, `man 2 pipe`, `man 2 dup2`, `man 2 sigaction`, `man 2 waitpid`
+
+### Additional reading
+
+- [Writing a Unix Shell (series)](https://indradhanush.github.io/blog/writing-a-unix-shell-part-1/)
+  — Step-by-step walkthrough of building a shell in C
+
+### AI Usage
+
+GitHub Copilot (Claude Sonnet 4.6) was used throughout this project for the
+following tasks:
+
+| Area | How AI was used |
+|---|---|
+| **Documentation** | Generated Doxygen-style doc comments for all functions; reviewed existing docs for accuracy |
+| **Signal handling** | Explained `128 + N` exit codes, `sigaction` vs `signal()`, macOS libedit incompatibility; implemented `setup_signals` and `handle_sigint` |
+| **Bug detection** | Found key/value swap bug in `sort_env` (builtin_export.c) |
+| **Makefile** | Added OS detection to link against Homebrew readline on macOS |
+| **Study planning** | Generated structured study plans for env, parsing, and error handling modules |
+| **Code review** | Reviewed builtins for behavioral accuracy against bash |
+
+AI was not used to write core logic from scratch. All algorithms, data structures,
+and architecture decisions were made by the team.
+
+---
+
+## Authors
+
+- **maria-ol** — Parsing (lexer, expander, parser, quotes), Environment & Signals
+- **mgomes-t** — Execution (executor, pipes, redirections) & Built-ins  
+
+---
+
+*This project is part of the 42 School curriculum.*

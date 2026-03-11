@@ -1,0 +1,9 @@
+Makefile
+README.md
+guides
+include
+libraries
+minishell
+obj
+out.txt
+src

@@ -3,20 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   builtin_checker.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/02/19 22:08:53 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/04 21:35:44 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 /**
  * @brief Checks if a command name is a builtin.
- * 
- * Uses ft_strncmp with strlen + 1 to ensure exact match,
- * preventing partial matches like "cdrom" matching "cd".
- * 
+ *
+ * Compares cmd against each builtin name using ft_strncmp with the
+ * builtin's length + 1 (hardcoded) to ensure an exact match and
+ * prevent partial matches like "cdrom" matching "cd".
+ *
  * @param cmd Command name string
  * @return 1 if builtin, 0 otherwise
  */

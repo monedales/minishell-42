@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/04 21:26:31 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,17 +42,14 @@ int	wait_child(pid_t pid, t_mini *mini)
 }
 
 /**
- * @brief Executa um comando simples (sem pipes)
+ * @brief Resolves the command path and executes it with execve.
  * 
- * TODO (Pessoa B): Implementar
- * - Setup dos redirecionamentos
- * - Fork
- * - No filho: execve
- * - No pai: waitpid e capturar exit status
+ * Called in the child process. Sets up redirections first,
+ * then finds the command path and calls execve.
+ * Exits with appropriate code on any error.
  * 
- * @param cmd Comando a executar
- * @param mini Estrutura principal
- * @return Exit status do comando
+ * @param cmd  Command node
+ * @param mini Main shell structure
  */
 void	exec_child(t_cmd *cmd, t_mini *mini)
 {
@@ -71,12 +68,22 @@ void	exec_child(t_cmd *cmd, t_mini *mini)
 	if (!env_array)
 		exit(1);
 	execve(cmd_path, cmd->args, env_array);
-	handle_error(ERR_PERMISSION, cmd->args[0], 0);
+	perror(cmd->args[0]);
 	free(cmd_path);
 	free_array(env_array);
 	exit(126);
 }
 
+/**
+ * @brief Executes a single command without pipes.
+ * 
+ * If the command is a builtin, runs it directly in the parent process.
+ * Otherwise forks, runs exec_child in the child, and waits for it.
+ * 
+ * @param cmd  Command node to execute
+ * @param mini Main shell structure
+ * @return Exit status of the command
+ */
 int	execute_simple_cmd(t_cmd *cmd, t_mini *mini)
 {
 	pid_t	pid;

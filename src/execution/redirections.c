@@ -13,6 +13,23 @@
 #include "../../include/minishell.h"
 
 /**
+ * @brief Restores stdin and stdout from saved file descriptors.
+ * 
+ * Called after executing a builtin in the parent process to undo
+ * any redirections applied by setup_redirections.
+ * 
+ * @param saved_in  Saved STDIN_FILENO fd
+ * @param saved_out Saved STDOUT_FILENO fd
+ */
+void	restore_fds(int in, int out)
+{
+	dup2(in, STDIN_FILENO);
+	dup2(out, STDOUT_FILENO);
+	close(in);
+	close(out);
+}
+
+/**
  * @brief Redirects stdin from a file (<).
  * 
  * Opens the file for reading and duplicates it onto stdin.
@@ -103,9 +120,16 @@ int	redir_heredoc(char *delimiter)
 		ft_putstr_fd("\n", pipefd[1]);
 		free(line);
 	}
+	close(pipefd[1]);
+	if (dup2(pipefd[0], STDIN_FILENO) == -1)
+	{
+		close(pipefd[0]);
+		return (ERROR);
+	}
 	close(pipefd[0]);
 	return (SUCCESS);
 }
+
 
 /**
  * @brief Configura os redirecionamentos para um comando

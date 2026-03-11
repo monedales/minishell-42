@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/27 21:18:12 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/04 22:11:16 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,6 +185,7 @@ char		*search_in_dirs(char **dirs, char *cmd);
 int			setup_redirections(t_redir *redirs);
 void		exec_child(t_cmd *cmd, t_mini *mini);
 void		print_env(t_env *env);
+void		restore_fds(int in, int out);
 
 
 /* ========================================================================== */
@@ -206,15 +207,16 @@ int			builtin_exit(char **args, t_mini *mini);
 /*                             SIGNALS (Pessoa B)                             */
 /* ========================================================================== */
 
+extern volatile sig_atomic_t	g_signal;
+
 void		setup_signals(void);
 void		handle_sigint(int sig);
-void		handle_sigquit(int sig);
 
 /* ========================================================================== */
 /*                                  UTILS                                     */
 /* ========================================================================== */
 
-void		free_split(char **split);
+void		free_array(char **array);
 void		safe_free(void **ptr);
 
 // Error handling
