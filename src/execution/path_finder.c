@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   path_finder.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/12 21:12:51 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,23 +64,17 @@ char	*get_path_value(t_env *env)
 }
 
 /**
- * @brief Busca o caminho completo de um comando
- * 
- * TODO (Pessoa B): Implementar
- * - Se cmd contém '/', usar ele diretamente
- * - Senão, buscar PATH na env
- * - Split PATH por ':'
- * - Para cada diretório, testar se existe cmd executável (access)
- * - Retornar o primeiro caminho válido
- * 
- * EXEMPLO:
- * cmd = "ls"
- * PATH = "/usr/bin:/bin"
- * Testar: /usr/bin/ls (OK!) -> retornar "/usr/bin/ls"
- * 
- * @param cmd Nome do comando
- * @param env Lista de ambiente
- * @return Caminho completo ou NULL se não encontrar
+ * @brief Resolves the executable path for a command.
+ *
+ * Resolution order:
+ * - If `cmd` is NULL/empty, returns NULL.
+ * - If `cmd` contains '/', treats it as explicit path and duplicates it.
+ * - Otherwise, gets `PATH` from `env`, splits by ':', and searches each
+ *   directory for an executable file with `access(X_OK)`.
+ *
+ * @param cmd Command name or explicit path.
+ * @param env Environment linked list.
+ * @return Malloc'ed full path when found, or NULL if unresolved.
  */
 char	*find_command_path(char *cmd, t_env *env)
 {
@@ -96,6 +90,6 @@ char	*find_command_path(char *cmd, t_env *env)
 		return (NULL);
 	dirs = ft_split(path_value, ':');
 	if (!dirs)
-	   	return (NULL);
+		return (NULL);
 	return (search_in_dirs(dirs, cmd));
 }

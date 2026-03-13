@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtin_exit.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/04 21:37:43 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/12 20:29:05 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,8 @@ int	builtin_exit(char **args, t_mini *mini)
 
 	if (!args[1])
 	{
-		code = mini->last_exit_status;
-		free_env(mini->env);
-		exit(code);
+		mini->running = FALSE;
+		return (mini->last_exit_status);
 	}
 	if (args[2])
 	{
@@ -73,12 +72,12 @@ int	builtin_exit(char **args, t_mini *mini)
 	if (!is_numeric(args[1]))
 	{
 		handle_error(ERR_NUM_REQUIRED, "exit", args[1]);
-		free_env(mini->env);
-		exit (2);
+		mini->running = FALSE;
+		return (2);
 	}
 	code = ft_atoi(args[1]) % 256;
 	if (code < 0)
 		code += 256;
-	free_env(mini->env);
-	exit(code);
+	mini->running = FALSE;
+	return (code);
 }

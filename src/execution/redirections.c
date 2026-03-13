@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   redirections.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/12 21:10:43 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ int	redir_out(char *file, int append)
 
 	if (append)
 		flags = O_WRONLY | O_CREAT | O_APPEND;
-	else 
+	else
 		flags = O_WRONLY | O_CREAT | O_TRUNC;
 	fd = open(file, flags, 0644);
 	if (fd == -1)
@@ -114,7 +114,7 @@ int	redir_heredoc(char *delimiter)
 		if (!line || ft_strncmp(line, delimiter, ft_strlen(delimiter) + 1) == 0)
 		{
 			free(line);
-			break;
+			break ;
 		}
 		ft_putstr_fd(line, pipefd[1]);
 		ft_putstr_fd("\n", pipefd[1]);
@@ -130,25 +130,24 @@ int	redir_heredoc(char *delimiter)
 	return (SUCCESS);
 }
 
-
 /**
- * @brief Configura os redirecionamentos para um comando
- * 
- * TODO (Pessoa B): Implementar
- * - Percorrer lista de redirecionamentos
- * - Para cada tipo:
- *   - REDIR_IN (<): open arquivo, dup2 para stdin
- *   - REDIR_OUT (>): open/create arquivo, dup2 para stdout
- *   - REDIR_APPEND (>>): open/create em modo append, dup2 para stdout
- *   - REDIR_HEREDOC (<<): ler até delimiter, criar pipe temporário
- * - Fechar FDs originais após dup2
- * 
- * @param redirs Lista de redirecionamentos
- * @return SUCCESS ou ERROR
+ * @brief Applies all redirections of a command in list order.
+ *
+ * Iterates through `redirs` and dispatches each node by type:
+ * - `TKN_REDIR_IN`      -> `redir_in()`
+ * - `TKN_REDIR_OUT`     -> `redir_out(..., FALSE)`
+ * - `TKN_REDIR_APPEND`  -> `redir_out(..., TRUE)`
+ * - `TKN_REDIR_HEREDOC` -> `redir_heredoc()`
+ *
+ * If any redirection fails, stops immediately and returns `ERROR`.
+ * On success, all requested fd changes are active in the current process.
+ *
+ * @param redirs Head of the redirection linked list.
+ * @return `SUCCESS` if all redirections are applied, `ERROR` otherwise.
  */
 int	setup_redirections(t_redir *redirs)
 {
-	while(redirs)
+	while (redirs)
 	{
 		if (redirs->type == TKN_REDIR_IN)
 		{
@@ -160,7 +159,7 @@ int	setup_redirections(t_redir *redirs)
 			if (redir_out(redirs->file, FALSE) == ERROR)
 				return (ERROR);
 		}
-				else if (redirs->type == TKN_REDIR_APPEND)
+		else if (redirs->type == TKN_REDIR_APPEND)
 		{
 			if (redir_out(redirs->file, TRUE) == ERROR)
 				return (ERROR);
@@ -173,5 +172,4 @@ int	setup_redirections(t_redir *redirs)
 		redirs = redirs->next;
 	}
 	return (SUCCESS);
-	}
-
+}

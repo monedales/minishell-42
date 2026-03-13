@@ -3,15 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   executor_simple.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/04 21:26:31 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/12 21:04:20 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
-
 
 /**
  * @brief Waits for the child process and returns its exit status.

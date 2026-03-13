@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   executor_pipeline.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/01/21 20:21:33 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/12 21:04:20 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,13 +80,11 @@ static void	exec_pipeline_cmd(t_cmd *cmd, t_mini *mini)
  * @param cmd     Command to execute
  * @param prev_fd Read end of the previous pipe (-1 if first command)
  * @param pipefd  Current pipe fds
- * @param is_last TRUE if this is the last command in the pipeline
  * @param mini    Main shell structure
  */
-static void	child_process(t_cmd *cmd, int prev_fd, int *pipefd,
-				int is_last, t_mini *mini)
+static void	child_process(t_cmd *cmd, int prev_fd, int *pipefd, t_mini *mini)
 {
-	setup_child_fds(prev_fd, pipefd, is_last);
+	setup_child_fds(prev_fd, pipefd, !cmd->next);
 	if (setup_redirections(cmd->redirs) == ERROR)
 		exit(1);
 	exec_pipeline_cmd(cmd, mini);
@@ -160,7 +158,7 @@ int	execute_pipeline(t_cmd *cmd_list, t_mini *mini)
 		if (cmd->pid == -1)
 			return (1);
 		if (cmd->pid == 0)
-			child_process(cmd, prev_fd, pipefd, !cmd->next, mini);
+			child_process(cmd, prev_fd, pipefd, mini);
 		if (prev_fd != -1)
 			close(prev_fd);
 		if (cmd->next)

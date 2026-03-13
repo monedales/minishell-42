@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   executor.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/04 21:48:46 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/12 21:04:20 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ static int	count_cmds(t_cmd *cmd_list)
 	}
 	return (count);
 }
+
 /**
  * @brief Executes a builtin in the parent process with redirections.
  * 
@@ -62,6 +63,7 @@ static int	exec_builtin_parent(t_cmd *cmd, t_mini *mini)
 	mini->last_exit_status = ret;
 	return (ret);
 }
+
 /**
  * @brief Main dispatcher for command list execution.
  * 
