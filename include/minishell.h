@@ -181,8 +181,11 @@ int			execute_cmd_list(t_cmd *cmd_list, t_mini *mini);
 int			execute_simple_cmd(t_cmd *cmd, t_mini *mini);
 int			execute_pipeline(t_cmd *cmd_list, t_mini *mini);
 char		*find_command_path(char *cmd, t_env *env);
+char		*search_in_dirs(char **dirs, char *cmd);
 int			setup_redirections(t_redir *redirs);
+void		exec_child(t_cmd *cmd, t_mini *mini);
 void		print_env(t_env *env);
+void		restore_fds(int in, int out);
 
 
 /* ========================================================================== */
@@ -213,7 +216,7 @@ void		handle_sigint(int sig);
 /*                                  UTILS                                     */
 /* ========================================================================== */
 
-void		free_split(char **split);
+void		free_array(char **array);
 void		safe_free(void **ptr);
 
 // Error handling
