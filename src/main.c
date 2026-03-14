@@ -6,7 +6,7 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/03/12 21:14:48 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/13 21:32:03 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,35 @@ static int	init_minishell(t_mini *mini, char **envp)
 }
 
 /**
+ * @brief Removes quotes from all word tokens.
+ *
+ * Applies quote removal after expansion so parser/executor receive
+ * clean arguments and filenames.
+ *
+ * @param tokens Token list to update in place.
+ */
+static void	remove_quotes_from_tokens(t_token *tokens)
+{
+	t_token	*curr;
+	char	*clean;
+
+	curr = tokens;
+	while (curr)
+	{
+		if (curr->type == TOKEN_WORD && curr->value)
+		{
+			clean = remove_quotes(curr->value);
+			if (clean)
+			{
+				free(curr->value);
+				curr->value = clean;
+			}
+		}
+		curr = curr->next;
+	}
+}
+
+/**
  * @brief Processes one full command line.
  *
  * Runs the complete pipeline for one input line:
@@ -47,10 +76,17 @@ static void	process_line(char *line, t_mini *mini)
 {
 	t_token	*tokens;
 
+	if (!validate_quotes(line))
+	{
+		handle_error(ERR_SYNTAX, NULL, "'newline'");
+		mini->last_exit_status = 2;
+		return ;
+	}
 	tokens = lexer(line);
 	if (!tokens)
 		return ;
 	expand_tokens(tokens, mini);
+	remove_quotes_from_tokens(tokens);
 	mini->cmd_list = parser(tokens);
 	free_tokens(tokens);
 	if (!mini->cmd_list)

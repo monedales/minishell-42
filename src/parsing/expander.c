@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   expander.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/27 21:16:39 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/13 21:32:06 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,19 +54,26 @@ static char	*expand_one_var(char *str, t_mini *mini, int *i)
  */
 char	*expand_string(char *str, t_mini *mini)
 {
-	char	*result;
-	int		i;
-	char	*value;
+	char			*result;
+	int				i;
+	char			*value;
+	t_quote_state	state;
 
 	if (!str || !mini)
 		return (NULL);
-	if (is_single_quoted(str))
-		return (ft_strdup(str));
 	result = NULL;
 	i = 0;
+	state = QUOTE_NONE;
 	while (str[i])
 	{
-		if (is_var_start(str[i], str[i + 1]))
+		if ((str[i] == '\'' && (state == QUOTE_NONE || state == QUOTE_SINGLE))
+			|| (str[i] == '"' && (state == QUOTE_NONE
+					|| state == QUOTE_DOUBLE)))
+		{
+			update_quote_state(str[i], &state);
+			result = append_char_to_buffer(result, str[i++]);
+		}
+		else if (state != QUOTE_SINGLE && is_var_start(str[i], str[i + 1]))
 		{
 			value = expand_one_var(&str[i], mini, &i);
 			result = append_to_buffer(result, value);

@@ -6,7 +6,7 @@
 /*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/19 22:10:18 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/13 21:32:05 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,20 +79,18 @@ static int	is_delimiter(char c)
  */
 static char	*extract_word(char *str, int *i)
 {
-	int		start;
-	int		in_single;
-	int		in_double;
-	char	*word;
+	int				start;
+	t_quote_state	state;
+	char			*word;
 
 	start = *i;
-	in_single = 0;
-	in_double = 0;
-	while (str[*i] && (in_single || in_double || !is_delimiter(str[*i])))
+	state = QUOTE_NONE;
+	while (str[*i] && (state != QUOTE_NONE || !is_delimiter(str[*i])))
 	{
-		if (str[*i] == '\'' && !in_double)
-			in_single = !in_single;
-		else if (str[*i] == '"' && !in_single)
-			in_double = !in_double;
+		if ((str[*i] == '\'' && (state == QUOTE_NONE || state == QUOTE_SINGLE))
+			|| (str[*i] == '"' && (state == QUOTE_NONE
+					|| state == QUOTE_DOUBLE)))
+			update_quote_state(str[*i], &state);
 		(*i)++;
 	}
 	word = ft_substr(str, start, *i - start);
