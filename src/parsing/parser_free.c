@@ -3,14 +3,33 @@
 /*                                                        :::      ::::::::   */
 /*   parser_free.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/13 00:00:00 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/02/19 22:10:23 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/24 21:39:58 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
+
+/**
+ * @brief Ensures a current command node exists, creating one if needed.
+ *
+ * Used before adding args or redirs to guarantee *current_cmd is not NULL.
+ * This handles cases where a redirection appears before the command name
+ * (e.g. "> out.txt ls") and no cmd node has been created yet.
+ *
+ * @param cmd_list    Head of the command list
+ * @param current_cmd Pointer to the current command being built
+ */
+void	ensure_cmd(t_cmd **cmd_list, t_cmd **current_cmd)
+{
+	if (*current_cmd == NULL)
+	{
+		*current_cmd = create_cmd_node();
+		add_cmd(cmd_list, *current_cmd);
+	}
+}
 
 /**
  * @brief Frees the redirection list.

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/02/19 22:10:34 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/24 21:39:26 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,22 +110,19 @@ static int	validate_syntax(t_token *tokens)
 static void	parse_tokens(t_token *curr, t_cmd **cmd_list, t_cmd **current_cmd)
 {
 	t_redir	*redir;
-
+ 
 	redir = NULL;
 	while (curr)
 	{
 		if (curr->type == TOKEN_WORD)
 		{
-			if (*current_cmd == NULL)
-			{
-				*current_cmd = create_cmd_node();
-				add_cmd(cmd_list, *current_cmd);
-			}
+			ensure_cmd(cmd_list, current_cmd);
 			add_arg_to_cmd(*current_cmd, curr->value);
 		}
 		else if (curr->type == TKN_REDIR_APPEND || curr->type == TKN_REDIR_IN
 			|| curr->type == TKN_REDIR_HEREDOC || curr->type == TKN_REDIR_OUT)
 		{
+			ensure_cmd(cmd_list, current_cmd);
 			redir = create_redir_node(curr->type, curr->next->value);
 			add_redir_to_cmd(*current_cmd, redir);
 			curr = curr->next;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   redirections.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/12 21:10:43 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/24 21:20:55 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,45 +131,62 @@ int	redir_heredoc(char *delimiter)
 }
 
 /**
- * @brief Applies all redirections of a command in list order.
+ * @brief Applies a single redirection node.
  *
- * Iterates through `redirs` and dispatches each node by type:
- * - `TKN_REDIR_IN`      -> `redir_in()`
- * - `TKN_REDIR_OUT`     -> `redir_out(..., FALSE)`
- * - `TKN_REDIR_APPEND`  -> `redir_out(..., TRUE)`
- * - `TKN_REDIR_HEREDOC` -> `redir_heredoc()`
+ * For heredoc, restores STDIN to orig_stdin (the terminal) before
+ * reading, so that multiple heredocs always read from the terminal
+ * and not from a previous heredoc's pipe.
  *
- * If any redirection fails, stops immediately and returns `ERROR`.
- * On success, all requested fd changes are active in the current process.
- *
- * @param redirs Head of the redirection linked list.
- * @return `SUCCESS` if all redirections are applied, `ERROR` otherwise.
+ * @param redir       The redirection node to apply.
+ * @param orig_stdin  The saved terminal fd (from dup at start of setup).
+ * @return SUCCESS or ERROR.
  */
-int	setup_redirections(t_redir *redirs)
+static int	apply_redir(t_redir *redirs, int orig_stdin)
 {
 	while (redirs)
 	{
 		if (redirs->type == TKN_REDIR_IN)
+			return (redir_in(redirs->file));
+		if (redirs->type == TKN_REDIR_OUT)
+			return (redir_out(redirs->file, FALSE));
+		if (redirs->type == TKN_REDIR_APPEND)
+			return (redir_out(redirs->file, TRUE));
+		if (redirs->type == TKN_REDIR_HEREDOC)
 		{
-			if (redir_in(redirs->file) == ERROR)
-				return (ERROR);
+			dup2(orig_stdin, STDIN_FILENO);
+			return (redir_heredoc(redirs->file));
 		}
-		else if (redirs->type == TKN_REDIR_OUT)
+	}
+	return (SUCCESS);
+}
+
+/**
+ * @brief Applies all redirections of a command in list order.
+ *
+ * Saves the original STDIN before iterating so that each heredoc
+ * can restore it before calling readline — preventing a heredoc
+ * from reading the pipe left by a previous heredoc.
+ * Only the last heredoc's pipe remains as STDIN after the loop.
+ *
+ * @param redirs Head of the redirection linked list.
+ * @return SUCCESS if all redirections applied, ERROR otherwise.
+ */
+int	setup_redirections(t_redir *redirs)
+{
+	int	orig_stdin;
+ 
+	orig_stdin = dup(STDIN_FILENO);
+	if (orig_stdin == -1)
+		return (ERROR);
+	while (redirs)
+	{
+		if (apply_redir(redirs, orig_stdin) == ERROR)
 		{
-			if (redir_out(redirs->file, FALSE) == ERROR)
-				return (ERROR);
-		}
-		else if (redirs->type == TKN_REDIR_APPEND)
-		{
-			if (redir_out(redirs->file, TRUE) == ERROR)
-				return (ERROR);
-		}
-		else if (redirs->type == TKN_REDIR_HEREDOC)
-		{
-			if (redir_heredoc(redirs->file) == ERROR)
-				return (ERROR);
+			close(orig_stdin);
+			return (ERROR);
 		}
 		redirs = redirs->next;
 	}
+	close(orig_stdin);
 	return (SUCCESS);
 }

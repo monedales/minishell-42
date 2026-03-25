@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/03/13 21:32:03 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/24 22:54:47 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,10 @@ static void	process_line(char *line, t_mini *mini)
 	mini->cmd_list = parser(tokens);
 	free_tokens(tokens);
 	if (!mini->cmd_list)
+	{
+		mini->last_exit_status = 2;
 		return ;
+	}
 	mini->last_exit_status = execute_cmd_list(mini->cmd_list, mini);
 	free_cmd_list(mini->cmd_list);
 	mini->cmd_list = NULL;

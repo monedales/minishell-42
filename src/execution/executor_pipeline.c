@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   executor_pipeline.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/12 21:04:20 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/24 21:25:14 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ static void	setup_child_fds(int prev_fd, int *pipefd, int is_last)
  * @param cmd  Command node to execute
  * @param mini Main shell structure
  */
-static void	exec_pipeline_cmd(t_cmd *cmd, t_mini *mini)
+static int	exec_pipeline_cmd(t_cmd *cmd, t_mini *mini)
 {
 	char	*path;
 	char	**env_array;
@@ -59,16 +59,16 @@ static void	exec_pipeline_cmd(t_cmd *cmd, t_mini *mini)
 	if (!path)
 	{
 		handle_error(ERR_CMD_NOT_FOUND, cmd->args[0], NULL);
-		exit(127);
+		return (127);
 	}
 	env_array = env_to_array(mini->env);
 	if (!env_array)
-		exit(1);
+		return (free(path), 1);
 	execve(path, cmd->args, env_array);
 	perror(cmd->args[0]);
 	free(path);
 	free_array(env_array);
-	exit(126);
+	return (126);
 }
 
 /**
@@ -84,10 +84,18 @@ static void	exec_pipeline_cmd(t_cmd *cmd, t_mini *mini)
  */
 static void	child_process(t_cmd *cmd, int prev_fd, int *pipefd, t_mini *mini)
 {
-	setup_child_fds(prev_fd, pipefd, !cmd->next);
+	int	code;
+	
 	if (setup_redirections(cmd->redirs) == ERROR)
-		exit(1);
-	exec_pipeline_cmd(cmd, mini);
+		code = 1;
+	else
+	{
+		setup_child_fds(prev_fd, pipefd, !cmd->next);
+		code = exec_pipeline_cmd(cmd, mini);
+	}
+	free_cmd_list(mini->cmd_list);
+	free_env(mini->env);
+	exit(code);
 }
 
 /**

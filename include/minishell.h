@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/03/04 22:11:16 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/24 21:40:37 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,6 +186,8 @@ int			setup_redirections(t_redir *redirs);
 void		exec_child(t_cmd *cmd, t_mini *mini);
 void		print_env(t_env *env);
 void		restore_fds(int in, int out);
+void		ensure_cmd(t_cmd **cmd_list, t_cmd **current_cmd);
+
 
 
 /* ========================================================================== */
@@ -194,7 +196,6 @@ void		restore_fds(int in, int out);
 
 int			is_builtin(char *cmd);
 int			execute_builtin(t_cmd *cmd, t_mini *mini);
-
 int			builtin_echo(char **args);
 int			builtin_cd(char **args, t_mini *mini);
 int			builtin_pwd(void);

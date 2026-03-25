@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   executor_simple.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/12 21:04:20 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/03/24 22:20:21 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ int	wait_child(pid_t pid, t_mini *mini)
 	if (WIFSIGNALED(status))
 	{
 		mini->last_exit_status = 128 + WTERMSIG(status);
+		if (WTERMSIG(status) == SIGQUIT)
+			write(STDERR_FILENO, "Quit (core dumped)\n", 19);
 		return (mini->last_exit_status);
 	}
 	return (1);
