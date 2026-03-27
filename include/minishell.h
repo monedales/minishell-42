@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/03/24 21:40:37 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/26 21:28:07 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,6 +123,14 @@ typedef struct s_mini
 	int		running;			// flag para manter o loop ativo
 }	t_mini;
 
+// Expander loop state
+typedef struct s_exp_state
+{
+	char			*result;
+	int				i;
+	t_quote_state	state;
+}	t_exp_state;
+
 /* ========================================================================== */
 /*                           PARSING (Pessoa A)                               */
 /* ========================================================================== */
@@ -153,6 +161,7 @@ void		add_redir_to_cmd(t_cmd *cmd, t_redir *redir);
 void		add_cmd(t_cmd **head, t_cmd *new);
 void		free_redirs(t_redir *redirs);
 void		free_cmd_list(t_cmd *cmd_list);
+void		remove_quotes_from_tokens(t_token *tokens);
 
 // Quote handling
 char		*remove_quotes(char *str);
@@ -180,15 +189,19 @@ t_env		*create_env_node(const char *key, const char *value);
 int			execute_cmd_list(t_cmd *cmd_list, t_mini *mini);
 int			execute_simple_cmd(t_cmd *cmd, t_mini *mini);
 int			execute_pipeline(t_cmd *cmd_list, t_mini *mini);
+void		handle_signal_status(int status, int *last_status);
+int			fork_pipeline(t_cmd *cmd_list, t_mini *mini);
+void		child_process(t_cmd *cmd, int prev_fd, int *pipefd, t_mini *mini);
 char		*find_command_path(char *cmd, t_env *env);
 char		*search_in_dirs(char **dirs, char *cmd);
+void		restore_fds(int in, int out);
+int			redir_in(char *file);
+int			redir_out(char *file, int append);
 int			setup_redirections(t_redir *redirs);
 void		exec_child(t_cmd *cmd, t_mini *mini);
 void		print_env(t_env *env);
 void		restore_fds(int in, int out);
 void		ensure_cmd(t_cmd **cmd_list, t_cmd **current_cmd);
-
-
 
 /* ========================================================================== */
 /*                           BUILTINS (Pessoa B)                              */
@@ -211,6 +224,8 @@ int			builtin_exit(char **args, t_mini *mini);
 extern volatile sig_atomic_t	g_signal;
 
 void		setup_signals(void);
+void		setup_child_signals(void);
+void		setup_exec_signals(void);
 void		handle_sigint(int sig);
 
 /* ========================================================================== */

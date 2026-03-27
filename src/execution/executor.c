@@ -88,3 +88,61 @@ int	execute_cmd_list(t_cmd *cmd_list, t_mini *mini)
 	}
 	return (execute_pipeline(cmd_list, mini));
 }
+
+/**
+ * @brief Updates last_status and prints message based on signal received.
+ *
+ * Called when the last pipeline child is terminated by a signal.
+ * Prints a newline for SIGINT (Ctrl+C) or "Quit (core dumped)" for SIGQUIT.
+ *
+ * @param status      Raw waitpid status from the child
+ * @param last_status Pointer to the exit status to update
+ */
+void	handle_signal_status(int status, int *last_status)
+{
+	*last_status = 128 + WTERMSIG(status);
+	if (WTERMSIG(status) == SIGINT)
+		write(STDERR_FILENO, "\n", 1);
+	else if (WTERMSIG(status) == SIGQUIT)
+		write(STDERR_FILENO, "Quit (core dumped)\n", 19);
+}
+
+/**
+ * @brief Forks all child processes in the pipeline and connects pipes.
+ *
+ * Iterates over the command list, creating a pipe for each non-last command,
+ * forking a child, and passing pipe fds to the next iteration via prev_fd.
+ * The parent closes its copies of used fds after each fork.
+ *
+ * @param cmd_list Linked list of commands to fork
+ * @param mini     Main shell structure
+ * @return 0 on success, 1 on pipe or fork error
+ */
+int	fork_pipeline(t_cmd *cmd_list, t_mini *mini)
+{
+	t_cmd	*cmd;
+	int		prev_fd;
+	int		pipefd[2];
+
+	cmd = cmd_list;
+	prev_fd = -1;
+	while (cmd)
+	{
+		if (cmd->next && pipe(pipefd) == -1)
+			return (1);
+		cmd->pid = fork();
+		if (cmd->pid == -1)
+			return (1);
+		if (cmd->pid == 0)
+			child_process(cmd, prev_fd, pipefd, mini);
+		if (prev_fd != -1)
+			close(prev_fd);
+		if (cmd->next)
+		{
+			close(pipefd[1]);
+			prev_fd = pipefd[0];
+		}
+		cmd = cmd->next;
+	}
+	return (0);
+}

@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/24 22:20:21 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/26 20:36:59 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,16 +27,19 @@ int	wait_child(pid_t pid, t_mini *mini)
 	int	status;
 
 	waitpid(pid, &status, 0);
-	if (WIFEXITED(status))
-	{
-		mini->last_exit_status = WEXITSTATUS(status);
-		return (mini->last_exit_status);
-	}
+	setup_signals();
 	if (WIFSIGNALED(status))
 	{
 		mini->last_exit_status = 128 + WTERMSIG(status);
-		if (WTERMSIG(status) == SIGQUIT)
+		if (WTERMSIG(status) == SIGINT)
+			write(STDERR_FILENO, "\n", 1);
+		else if (WTERMSIG(status) == SIGQUIT)
 			write(STDERR_FILENO, "Quit (core dumped)\n", 19);
+		return (mini->last_exit_status);
+	}
+	if (WIFEXITED(status))
+	{
+		mini->last_exit_status = WEXITSTATUS(status);
 		return (mini->last_exit_status);
 	}
 	return (1);
@@ -57,6 +60,7 @@ void	exec_child(t_cmd *cmd, t_mini *mini)
 	char	*cmd_path;
 	char	**env_array;
 
+	setup_child_signals();
 	if (setup_redirections(cmd->redirs) == ERROR)
 		exit(1);
 	cmd_path = find_command_path(cmd->args[0], mini->env);
@@ -99,5 +103,6 @@ int	execute_simple_cmd(t_cmd *cmd, t_mini *mini)
 	}
 	if (pid == 0)
 		exec_child(cmd, mini);
+	setup_exec_signals();
 	return (wait_child(pid, mini));
 }

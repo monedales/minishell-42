@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/24 21:25:14 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/26 19:48:35 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,10 +82,11 @@ static int	exec_pipeline_cmd(t_cmd *cmd, t_mini *mini)
  * @param pipefd  Current pipe fds
  * @param mini    Main shell structure
  */
-static void	child_process(t_cmd *cmd, int prev_fd, int *pipefd, t_mini *mini)
+void	child_process(t_cmd *cmd, int prev_fd, int *pipefd, t_mini *mini)
 {
 	int	code;
-	
+
+	setup_child_signals();
 	if (setup_redirections(cmd->redirs) == ERROR)
 		code = 1;
 	else
@@ -101,9 +102,10 @@ static void	child_process(t_cmd *cmd, int prev_fd, int *pipefd, t_mini *mini)
 /**
  * @brief Waits for all child processes and returns the last exit status.
  *
- * Iterates the command list using the stored PIDs.
- * Only the status of the last command affects the return value,
- * matching bash behavior.
+ * Iterates the command list collecting each child's exit status via waitpid.
+ * Only the last command's status affects the return value, matching bash.
+ * Handles signal termination via handle_signal_status, then restores
+ * prompt-mode signal handlers.
  *
  * @param cmd_list Head of the command list (each node has a pid)
  * @param mini     Main shell structure
@@ -127,24 +129,22 @@ static int	wait_all(t_cmd *cmd_list, t_mini *mini)
 				if (WIFEXITED(status))
 					last_status = WEXITSTATUS(status);
 				else if (WIFSIGNALED(status))
-					last_status = 128 + WTERMSIG(status);
+					handle_signal_status(status, &last_status);
 			}
 		}
 		cmd = cmd->next;
 	}
 	mini->last_exit_status = last_status;
+	setup_signals();
 	return (last_status);
 }
 
 /**
  * @brief Executes a pipeline of commands connected by pipes.
  *
- * For each command:
- *   - Creates a pipe (except for the last command)
- *   - Forks a child process
- *   - The child sets up its fds and executes
- *   - The parent closes used fds and passes the read end to the next cmd
- * After all forks, waits for all children and returns last exit status.
+ * Delegates forking to fork_pipeline, then ignores signals in the parent
+ * during execution (setup_exec_signals) and waits for all children via
+ * wait_all, which also restores prompt-mode signal handlers.
  *
  * @param cmd_list Linked list of commands connected by pipes
  * @param mini     Main shell structure
@@ -152,29 +152,8 @@ static int	wait_all(t_cmd *cmd_list, t_mini *mini)
  */
 int	execute_pipeline(t_cmd *cmd_list, t_mini *mini)
 {
-	t_cmd	*cmd;
-	int		prev_fd;
-	int		pipefd[2];
-
-	cmd = cmd_list;
-	prev_fd = -1;
-	while (cmd)
-	{
-		if (cmd->next && pipe(pipefd) == -1)
-			return (1);
-		cmd->pid = fork();
-		if (cmd->pid == -1)
-			return (1);
-		if (cmd->pid == 0)
-			child_process(cmd, prev_fd, pipefd, mini);
-		if (prev_fd != -1)
-			close(prev_fd);
-		if (cmd->next)
-		{
-			close(pipefd[1]);
-			prev_fd = pipefd[0];
-		}
-		cmd = cmd->next;
-	}
+	if (fork_pipeline(cmd_list, mini) == 1)
+		return (1);
+	setup_exec_signals();
 	return (wait_all(cmd_list, mini));
 }
