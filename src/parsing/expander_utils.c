@@ -118,3 +118,39 @@ char	*expand_var_value(const char *var_name, t_mini *mini)
 		return (ft_strdup(value));
 	return (ft_strdup(""));
 }
+
+/**
+ * @brief Concatenates two string pieces, reallocating the buffer.
+ *
+ * Receives a base buffer (can be NULL) and a piece to add.
+ * Returns a new buffer with both pieces, freeing the old one.
+ *
+ * @param base Current buffer (can be NULL)
+ * @param add Piece to add
+ * @return New buffer, or NULL on error.
+ */
+char	*append_to_buffer(char *base, const char *add)
+{
+	char	*newbuf;
+	int		len_base;
+	int		len_add;
+
+	len_base = 0;
+	len_add = 0;
+	if (base)
+		len_base = ft_strlen(base);
+	if (add)
+		len_add = ft_strlen(add);
+	newbuf = ft_calloc(len_base + len_add + 1, sizeof(char));
+	if (!newbuf)
+	{
+		free(base);
+		return (NULL);
+	}
+	if (base)
+		ft_strlcpy(newbuf, base, len_base + 1);
+	if (add)
+		ft_strlcat(newbuf, add, len_base + len_add + 1);
+	free(base);
+	return (newbuf);
+}

@@ -13,6 +13,35 @@
 #include "../../include/minishell.h"
 
 /**
+ * @brief Removes quotes from all word tokens after expansion.
+ *
+ * Applies quote removal so parser/executor receive clean arguments.
+ * Called in main after expand_tokens and before parser.
+ *
+ * @param tokens Token list to update in place.
+ */
+void	remove_quotes_from_tokens(t_token *tokens)
+{
+	t_token	*curr;
+	char	*clean;
+
+	curr = tokens;
+	while (curr)
+	{
+		if (curr->type == TOKEN_WORD && curr->value)
+		{
+			clean = remove_quotes(curr->value);
+			if (clean)
+			{
+				free(curr->value);
+				curr->value = clean;
+			}
+		}
+		curr = curr->next;
+	}
+}
+
+/**
  * @brief Ensures a current command node exists, creating one if needed.
  *
  * Used before adding args or redirs to guarantee *current_cmd is not NULL.

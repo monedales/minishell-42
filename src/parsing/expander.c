@@ -38,87 +38,62 @@ static char	*expand_one_var(char *str, t_mini *mini, int *i)
 }
 
 /**
- * @brief Expands all variables in a string, except inside single quotes.
+ * @brief Processes one character of the string during variable expansion.
  *
- * Iterates through the string, expanding $VAR and $?, building a new string.
- * Single quotes disable expansion. Uses helpers for buffer and variable logic.
+ * Handles three cases: quote character (updates state and copies it),
+ * variable start (expands $VAR or $?), or regular character (copies as-is).
+ * Updates the expansion state in place via the t_exp_state struct.
  *
- * Example:
- *   Input: "Hello $USER" with USER=mona -> "Hello mona"
- *   Input: "exit: $?" with status=127 -> "exit: 127"
- *   Input: 'Hello $USER' -> 'Hello $USER' (no expansion)
- *
- * @param str Original string
- * @param mini Main structure (for env and exit_status)
- * @return New string with variables expanded (malloc'd).
+ * @param s    Expansion state (result buffer, index, quote state)
+ * @param str  Original string being expanded
+ * @param mini Main shell structure for env and exit status
  */
-char	*expand_string(char *str, t_mini *mini)
+static void	process_char(t_exp_state *s, char *str, t_mini *mini)
 {
-	char			*result;
-	int				i;
-	char			*value;
-	t_quote_state	state;
+	char	*value;
 
-	if (!str || !mini)
-		return (NULL);
-	result = NULL;
-	i = 0;
-	state = QUOTE_NONE;
-	while (str[i])
+	if ((str[s->i] == '\'' && (s->state == QUOTE_NONE
+				|| s->state == QUOTE_SINGLE))
+		|| (str[s->i] == '"' && (s->state == QUOTE_NONE
+				|| s->state == QUOTE_DOUBLE)))
 	{
-		if ((str[i] == '\'' && (state == QUOTE_NONE || state == QUOTE_SINGLE))
-			|| (str[i] == '"' && (state == QUOTE_NONE
-					|| state == QUOTE_DOUBLE)))
-		{
-			update_quote_state(str[i], &state);
-			result = append_char_to_buffer(result, str[i++]);
-		}
-		else if (state != QUOTE_SINGLE && is_var_start(str[i], str[i + 1]))
-		{
-			value = expand_one_var(&str[i], mini, &i);
-			result = append_to_buffer(result, value);
-			free(value);
-		}
-		else
-			result = append_char_to_buffer(result, str[i++]);
+		update_quote_state(str[s->i], &s->state);
+		s->result = append_char_to_buffer(s->result, str[s->i++]);
+		return ;
 	}
-	return (result);
+	if (s->state != QUOTE_SINGLE && is_var_start(str[s->i], str[s->i + 1]))
+	{
+		value = expand_one_var(&str[s->i], mini, &s->i);
+		s->result = append_to_buffer(s->result, value);
+		free(value);
+		return ;
+	}
+	s->result = append_char_to_buffer(s->result, str[s->i++]);
 }
 
 /**
- * @brief Concatenates two string pieces, reallocating the buffer.
+ * @brief Expands all variables in a string, except inside single quotes.
  *
- * Receives a base buffer (can be NULL) and a piece to add.
- * Returns a new buffer with both pieces, freeing the old one.
+ * Iterates through the string character by character using process_char,
+ * expanding $VAR and $? while tracking quote state. Single quotes disable
+ * expansion; double quotes allow only variable expansion.
  *
- * @param base Current buffer (can be NULL)
- * @param add Piece to add
- * @return New buffer, or NULL on error.
+ * @param str  Original string to expand
+ * @param mini Main structure (for env and exit_status)
+ * @return New string with variables expanded (malloc'd), or NULL on error.
  */
-char	*append_to_buffer(char *base, const char *add)
+char	*expand_string(char *str, t_mini *mini)
 {
-	char	*newbuf;
-	int		len_base;
-	int		len_add;
+	t_exp_state	s;
 
-	len_base = 0;
-	len_add = 0;
-	if (base)
-		len_base = ft_strlen(base);
-	if (add)
-		len_add = ft_strlen(add);
-	newbuf = ft_calloc(len_base + len_add + 1, sizeof(char));
-	if (!newbuf)
-	{
-		free(base);
+	if (!str || !mini)
 		return (NULL);
-	}
-	if (base)
-		ft_strlcpy(newbuf, base, len_base + 1);
-	if (add)
-		ft_strlcat(newbuf, add, len_base + len_add + 1);
-	free(base);
-	return (newbuf);
+	s.result = NULL;
+	s.i = 0;
+	s.state = QUOTE_NONE;
+	while (str[s.i])
+		process_char(&s, str, mini);
+	return (s.result);
 }
 
 /**

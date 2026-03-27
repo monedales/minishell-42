@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/03/24 21:39:26 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/26 21:25:05 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,7 @@ static int	validate_syntax(t_token *tokens)
 static void	parse_tokens(t_token *curr, t_cmd **cmd_list, t_cmd **current_cmd)
 {
 	t_redir	*redir;
- 
+
 	redir = NULL;
 	while (curr)
 	{

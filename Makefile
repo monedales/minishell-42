@@ -76,7 +76,8 @@ EXEC_SRC = executor.c \
            executor_simple.c \
            executor_pipeline.c \
            path_finder.c \
-           redirections.c
+           redirections.c \
+           redirections_utils.c
 
 # Builtins (Pessoa B)
 BUILTIN_SRC = builtin_checker.c \
