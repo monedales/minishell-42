@@ -1,6 +1,7 @@
 # 🔄 Minishell — Fluxo Completo do Projeto
 
-Este guia explica, em ordem de execução, como o minishell funciona desde a inicialização até o encerramento.
+Este guia explica, em ordem de execução, como o minishell funciona
+desde a inicialização até o encerramento.
 
 ---
 
@@ -8,15 +9,16 @@ Este guia explica, em ordem de execução, como o minishell funciona desde a ini
 
 ```
 main()
- ├── init_minishell()       → cria t_mini + lista de env
- ├── setup_signals()        → configura SIGINT / SIGQUIT
- ├── repl_loop()            → loop principal (REPL)
- │    └── process_line()    → pipeline de parsing + execução
+ ├── init_minishell()          → cria t_mini + lista de env
+ ├── setup_signals()           → configura SIGINT / SIGQUIT
+ ├── repl_loop()               → loop principal (REPL)
+ │    └── process_line()       → pipeline de parsing + execução
  │         ├── lexer()
  │         ├── expand_tokens()
+ │         ├── remove_quotes_from_tokens()
  │         ├── parser()
  │         └── execute_cmd_list()
- └── cleanup_minishell()    → libera toda a memória
+ └── cleanup_minishell()       → libera toda a memória
 ```
 
 ---
@@ -30,7 +32,7 @@ main()
 
 ### `setup_signals()`
 - Configura dois handlers com `sigaction`:
-  - **SIGINT (Ctrl-C)**: chama `handle_sigint()` → seta `g_signal = 130`, reescreve o prompt.
+  - **SIGINT (Ctrl-C)**: chama `handle_sigint()` → escreve `\n`, limpa readline, redesenha prompt.
   - **SIGQUIT (Ctrl-\\)**: ignorado (`SIG_IGN`), igual ao bash interativo.
 - Usa `SA_RESTART` para que `readline` não seja interrompido no meio de uma leitura.
 
@@ -44,7 +46,7 @@ O REPL (**Read–Eval–Print Loop**) é um `while (mini->running)`:
 readline("minishell$ ")
         │
         ├── NULL (Ctrl-D)         → imprime "exit\n", encerra loop
-        ├── g_signal == 130       → atualiza last_exit_status, g_signal = 0
+        ├── g_signal == 130       → atualiza last_exit_status, g_signal = 0, continue
         ├── linha vazia ""        → libera e continua
         └── linha com conteúdo   → add_history() + process_line()
 ```
@@ -65,8 +67,14 @@ Para cada linha não-vazia, são executados 4 passos em sequência:
        │
        ▼
   ┌──────────┐
-  │ Expander │   → modifica tokens in-place
+  │ Expander │   → modifica tokens in-place (expande $VAR, $?)
   └──────────┘
+       │
+       ▼
+  ┌───────────────────────┐
+  │ remove_quotes_from_   │   → remove aspas dos tokens após expansão
+  │ tokens()              │
+  └───────────────────────┘
        │
        ▼
   ┌────────┐
@@ -83,27 +91,21 @@ Para cada linha não-vazia, são executados 4 passos em sequência:
 
 Transforma a string bruta em uma lista ligada de `t_token`.
 
-| Token         | Representa        |
-|---------------|-------------------|
-| `TOKEN_WORD`  | palavras / args   |
-| `TOKEN_PIPE`  | `\|`              |
-| `TKN_REDIR_IN`| `<`               |
-| `TKN_REDIR_OUT`| `>`              |
-| `TKN_REDIR_APPEND`| `>>`         |
-| `TKN_REDIR_HEREDOC`| `<<`        |
+| Token              | Representa         |
+|--------------------|--------------------|
+| `TOKEN_WORD`       | palavras / args    |
+| `TOKEN_PIPE`       | `\|`               |
+| `TKN_REDIR_IN`     | `<`                |
+| `TKN_REDIR_OUT`    | `>`                |
+| `TKN_REDIR_APPEND` | `>>`               |
+| `TKN_REDIR_HEREDOC`| `<<`               |
 
 Regras:
 - Espaços e tabs são ignorados (separadores).
 - `<`, `>`, `>>`, `<<` e `|` viram tokens próprios.
-- Aspas (simples e duplas) são respeitadas: delimitadores dentro de aspas fazem parte da palavra.
+- Aspas (simples e duplas) são respeitadas — delimitadores dentro de aspas fazem parte da palavra.
 
-Exemplo:
-```
-"echo hello | cat -n"
-→ [WORD:"echo"] [WORD:"hello"] [PIPE] [WORD:"cat"] [WORD:"-n"]
-```
-
-### 3.2 Expander (`expander.c`)
+### 3.2 Expander (`expander.c` + `expander_utils.c`)
 
 Percorre a lista de tokens e substitui variáveis **in-place** em cada `TOKEN_WORD`.
 
@@ -112,30 +114,17 @@ Percorre a lista de tokens e substitui variáveis **in-place** em cada `TOKEN_WO
 - **Aspas simples** (`'...'`) desativam a expansão completamente.
 - **Aspas duplas** (`"..."`) permitem expansão.
 - Filenames de redirecionamento (`< $ARQUIVO`) também são expandidos.
-
-Exemplo:
-```
-USER=mona, last_exit_status=0
-"echo $USER $?"  →  "echo mona 0"
-'echo $USER'     →  'echo $USER'   (sem expansão)
-```
+- Usa `t_exp_state` para rastrear o buffer, índice e estado de aspas durante o loop.
 
 ### 3.3 Parser (`parser.c`)
 
 Converte a lista de tokens em uma lista ligada de `t_cmd`.
 
-**Etapas internas:**
 1. `validate_syntax()` — verifica erros como `|` no início/fim, `||`, redirecionamentos sem arquivo.
 2. `parse_tokens()` — itera os tokens:
    - `TOKEN_WORD` → cria `t_cmd` se necessário, adiciona argumento via `add_arg_to_cmd()`.
    - `TKN_REDIR_*` → cria `t_redir` e associa ao `t_cmd` atual via `add_redir_to_cmd()`.
    - `TOKEN_PIPE` → o próximo `TOKEN_WORD` iniciará um novo `t_cmd`.
-
-Estrutura resultante para `echo hi | cat -n`:
-```
-t_cmd[0]: args=["echo","hi"], redirs=NULL, next→
-t_cmd[1]: args=["cat","-n"], redirs=NULL, next=NULL
-```
 
 ---
 
@@ -151,17 +140,16 @@ count_cmds >= 2?             →  execute_pipeline()       (N forks + pipes)
 
 ### 4.1 Builtin no pai (`exec_builtin_parent`)
 
-Builtins (`echo`, `cd`, `pwd`, `export`, `unset`, `env`, `exit`) rodam no processo pai pois precisam modificar o estado do shell (variáveis de ambiente, diretório atual, etc.).
+Builtins rodam no processo pai — precisam modificar o estado do shell.
 
-Fluxo:
 ```
-dup() de stdin/stdout originais
+dup() stdin/stdout originais
         ↓
-setup_redirections()   (aplica <, >, >>, <<)
+setup_redirections()
         ↓
-execute_builtin()      (chama a função builtin)
+execute_builtin()
         ↓
-restore_fds()          (restaura stdin/stdout)
+restore_fds()
 ```
 
 ### 4.2 Comando externo simples (`execute_simple_cmd`)
@@ -169,67 +157,69 @@ restore_fds()          (restaura stdin/stdout)
 ```
 fork()
   ├── filho: exec_child()
+  │     ├── setup_child_signals()   ← reseta SIGINT/SIGQUIT para SIG_DFL
   │     ├── setup_redirections()
-  │     ├── find_command_path()   (percorre PATH)
+  │     ├── find_command_path()
   │     └── execve()
-  └── pai: wait_child()   (waitpid + extrai exit status)
+  └── pai: setup_exec_signals()     ← ignora SIGINT/SIGQUIT durante wait
+           wait_child()             ← waitpid + setup_signals() + exit status
 ```
 
-Códigos de saída:
-- `127` — comando não encontrado.
-- `126` — encontrado mas não executável (falha de `execve`).
-- `128 + N` — processo terminado por sinal N.
-
-### 4.3 Pipeline (`execute_pipeline`)
-
-Para `cmd1 | cmd2 | cmd3`:
+### 4.3 Pipeline (`execute_pipeline` + `fork_pipeline`)
 
 ```
-Iteration 1: pipe() → fork() filho executa cmd1 com stdout→pipe[1]
-Iteration 2: pipe() → fork() filho executa cmd2 com stdin←pipe[0], stdout→pipe[1]
-Iteration 3: fork()  → filho executa cmd3 com stdin←pipe[0]
-Pai: wait_all() → coleta todos os filhos, retorna status do último
+fork_pipeline():
+  Para cada cmd: pipe() → fork()
+    filho: child_process() → setup_child_signals() → redirections → exec
+    pai: fecha fds, passa prev_fd para próximo
+
+setup_exec_signals()   ← pai ignora sinais durante wait
+
+wait_all():
+  waitpid() para cada filho
+  último cmd determina exit status
+  setup_signals()        ← restaura handlers do prompt
 ```
 
-### 4.4 Redirections (`redirections.c`)
+### 4.4 Sinais — três modos (`signals.c`)
 
-| Tipo              | Operação                            |
-|-------------------|-------------------------------------|
-| `TKN_REDIR_IN`    | `open(O_RDONLY)` + `dup2(stdin)`    |
-| `TKN_REDIR_OUT`   | `open(O_WRONLY\|O_CREAT\|O_TRUNC)` + `dup2(stdout)` |
-| `TKN_REDIR_APPEND`| `open(O_WRONLY\|O_CREAT\|O_APPEND)` + `dup2(stdout)` |
-| `TKN_REDIR_HEREDOC`| `pipe()` + `readline()` até delimitador + `dup2(stdin)` |
+| Modo         | Função              | SIGINT          | SIGQUIT    |
+|--------------|---------------------|-----------------|------------|
+| Prompt       | `setup_signals()`   | `handle_sigint` | `SIG_IGN`  |
+| Pai c/ filho | `setup_exec_signals()` | `SIG_IGN`    | `SIG_IGN`  |
+| Filho        | `setup_child_signals()` | `SIG_DFL`   | `SIG_DFL`  |
 
-### 4.5 Path resolution (`path_finder.c`)
+### 4.5 Redirections
 
-Para resolver `ls` → `/usr/bin/ls`:
-1. Se `cmd` contém `/`, usa diretamente (`ft_strdup`).
-2. Busca `PATH` no `t_env`.
-3. `ft_split(PATH, ':')` → array de diretórios.
-4. Para cada dir, testa `dir/cmd` com `access(X_OK)`.
-5. Retorna o primeiro caminho válido ou `NULL`.
+| Tipo               | Arquivo                    | Operação                              |
+|--------------------|----------------------------|---------------------------------------|
+| `TKN_REDIR_IN`     | `redirections_utils.c`     | `open(O_RDONLY)` + `dup2(stdin)`      |
+| `TKN_REDIR_OUT`    | `redirections_utils.c`     | `open(O_WRONLY\|O_CREAT\|O_TRUNC)`   |
+| `TKN_REDIR_APPEND` | `redirections_utils.c`     | `open(O_WRONLY\|O_CREAT\|O_APPEND)`  |
+| `TKN_REDIR_HEREDOC`| `redirections.c`           | `pipe()` + `readline()` até delimitador |
 
 ---
 
 ## 5. Builtins (`src/builtins/`)
 
-| Builtin   | Comportamento principal                                |
-|-----------|--------------------------------------------------------|
-| `echo`    | Imprime args; `-n` suprime `\n`                        |
-| `cd`      | `chdir()`, atualiza `PWD`/`OLDPWD` no `t_env`          |
-| `pwd`     | Imprime diretório atual via `getcwd()`                 |
-| `export`  | Adiciona/atualiza variável no `t_env`                  |
-| `unset`   | Remove variável do `t_env`                             |
-| `env`     | Imprime todos os pares `KEY=VALUE` do `t_env`          |
-| `exit`    | Seta `mini->running = FALSE`, retorna o código         |
+| Builtin  | Comportamento principal                                   |
+|----------|-----------------------------------------------------------|
+| `echo`   | Imprime args; `-n` suprime `\n`                           |
+| `cd`     | `chdir()`, atualiza `PWD`/`OLD_PWD` no `t_env`           |
+| `pwd`    | Imprime diretório atual via `getcwd()`                    |
+| `export` | Adiciona/atualiza variável no `t_env`                     |
+| `unset`  | Remove variável do `t_env`                                |
+| `env`    | Imprime todos os pares `KEY=VALUE` do `t_env`             |
+| `exit`   | Seta `mini->running = FALSE`, retorna o código            |
 
-> `exit` não chama `exit()` direto — sinaliza o loop para encerrar, garantindo que `free_cmd_list()` e `cleanup_minishell()` rodem normalmente.
+> `exit` não chama `exit()` diretamente — sinaliza o loop para encerrar,
+> garantindo que `cleanup_minishell()` rode normalmente.
 
 ---
 
 ## 6. Ambiente (`src/env/`)
 
-O ambiente é armazenado como uma **doubly linked list** de `t_env`:
+O ambiente é uma **doubly linked list** de `t_env`:
 
 ```c
 typedef struct s_env {
@@ -255,48 +245,26 @@ Operações principais:
 Chamado após o REPL encerrar (Ctrl-D ou `exit`):
 
 ```
-free_cmd_list(mini->cmd_list)   → libera estruturas do último comando (se houver)
-free_env(mini->env)             → libera toda a lista de variáveis de ambiente
-clear_history()                 → libera histórico do readline
+free_cmd_list(mini->cmd_list)
+free_env(mini->env)
+clear_history()
 ```
 
-O `main` retorna `mini.last_exit_status` como exit code do processo.
+`main` retorna `mini.last_exit_status` como exit code do processo.
 
 ---
 
-## 8. Estruturas principais
-
-```c
-t_mini {
-    t_env *env;             // lista de variáveis de ambiente
-    t_cmd *cmd_list;        // lista de comandos atual
-    int   last_exit_status; // valor de $?
-    int   running;          // flag do REPL
-}
-
-t_token { type, value, *next }
-t_cmd   { char **args, t_redir *redirs, pid_t pid, *next }
-t_redir { type, char *file, *next }
-t_env   { char *key, char *value, *prev, *next }
-```
-
----
-
-## 9. Diagrama de memória — ciclo de vida por linha
+## 8. Ciclo de vida da memória por linha
 
 ```
-readline() → string bruta (heap, free após process_line)
-    ↓
-lexer()    → t_token list (heap, free_tokens após parser)
-    ↓
-expander() → modifica valores dos tokens in-place
-    ↓
-parser()   → t_cmd list (heap, free_cmd_list após execute)
-    ↓
-executor() → fork/execve ou builtin direto
-    ↓
-free_cmd_list()  → libera t_cmd + t_redir + args
-free(line)       → libera string do readline
+readline()              → string bruta (heap, free após process_line)
+lexer()                 → t_token list (heap, free_tokens após parser)
+expander()              → modifica valores dos tokens in-place
+remove_quotes_from_tokens() → modifica tokens in-place
+parser()                → t_cmd list (heap, free_cmd_list após execute)
+executor()              → fork/execve ou builtin direto
+free_cmd_list()         → libera t_cmd + t_redir + args
+free(line)              → libera string do readline
 ```
 
 Nenhum desses recursos sobrevive entre iterações do REPL.

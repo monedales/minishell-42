@@ -1,172 +1,109 @@
-# 🐚 Minishell - 42 Project
+# 🐚 Minishell - Estrutura do Projeto
 
 ## 📋 Descrição
 
-Implementação de um shell minimalista (como bash) que suporta execução de comandos, pipes, redirecionamentos, variáveis de ambiente e built-ins.
+Implementação de um shell minimalista (como bash) que suporta execução
+de comandos, pipes, redirecionamentos, variáveis de ambiente e built-ins.
 
-## 🏗️ Estrutura do Projeto
+## 🏗️ Estrutura de Arquivos
 
 ```
 minishell/
-├── Makefile                  # Sistema de build
-├── README.md                 # Documentação
+├── Makefile
+├── README.md
 ├── include/
-│   └── minishell.h          # Header principal com structs e protótipos
+│   └── minishell.h           # Header principal — structs, enums, protótipos
 │
 ├── src/
-│   ├── main.c               # Entry point + REPL loop
+│   ├── main.c                # Entry point + REPL loop
 │   │
-│   ├── parsing/             # 🔵 PESSOA A - Interpretação
-│   │   ├── lexer.c          # Tokenização
-│   │   ├── expander.c       # Expansão de variáveis ($VAR, $?)
-│   │   ├── parser.c         # Construção da árvore de comandos
-│   │   └── quotes.c         # Manipulação de aspas
+│   ├── parsing/              # Interpretação da linha de comando
+│   │   ├── lexer.c           # Tokenização da string bruta
+│   │   ├── expander.c        # Expansão de variáveis ($VAR, $?)
+│   │   ├── expander_utils.c  # Helpers do expander (buffers, extract_var)
+│   │   ├── parser.c          # Construção da lista de comandos (t_cmd)
+│   │   ├── parser_utils.c    # Helpers do parser (add_arg, add_redir, etc)
+│   │   ├── parser_free.c     # Free de tokens/cmds + remove_quotes_from_tokens
+│   │   ├── quotes.c          # Máquina de estados de aspas
+│   │   └── tokens.c          # Criação e free de tokens
 │   │
-│   ├── env/                 # 🔵 PESSOA A - Ambiente
-│   │   ├── env_init.c       # Inicialização do ambiente
-│   │   ├── env_get.c        # Buscar variável
-│   │   ├── env_set.c        # Adicionar/modificar variável
-│   │   ├── env_unset.c      # Remover variável
-│   │   └── env_utils.c      # Conversão para array, free, etc
+│   ├── env/                  # Variáveis de ambiente
+│   │   ├── env_init.c        # init_env (envp → t_env list)
+│   │   ├── env_get.c         # get_env_value
+│   │   ├── env_set.c         # set_env_value
+│   │   ├── env_unset.c       # unset_env_value
+│   │   └── env_utils.c       # env_to_array, print_env, free_env
 │   │
-│   ├── execution/           # 🟢 PESSOA B - Execução
-│   │   ├── executor.c       # Dispatcher principal
-│   │   ├── executor_simple.c # Comando simples
-│   │   ├── executor_pipeline.c # Pipeline (pipes)
-│   │   ├── path_finder.c    # Busca no PATH
-│   │   └── redirections.c   # Setup de redirecionamentos
+│   ├── execution/            # Execução de comandos
+│   │   ├── executor.c        # Dispatcher + fork_pipeline + handle_signal_status
+│   │   ├── executor_simple.c # Comando único (fork + execve + wait_child)
+│   │   ├── executor_pipeline.c # Pipeline (child_process, wait_all)
+│   │   ├── path_finder.c     # Resolução do PATH
+│   │   ├── redirections.c    # redir_heredoc, apply_redir, setup_redirections
+│   │   └── redirections_utils.c # restore_fds, redir_in, redir_out
 │   │
-│   ├── builtins/            # 🟢 PESSOA B - Built-ins
-│   │   ├── builtin_checker.c # Verifica se é builtin
-│   │   ├── builtin_echo.c
-│   │   ├── builtin_cd.c
-│   │   ├── builtin_pwd.c
-│   │   ├── builtin_export.c
-│   │   ├── builtin_unset.c
-│   │   ├── builtin_env.c
-│   │   └── builtin_exit.c
+│   ├── builtins/             # Comandos built-in
+│   │   ├── builtin_checker.c # is_builtin + execute_builtin (dispatcher)
+│   │   ├── builtin_echo.c    # echo com -n
+│   │   ├── builtin_cd.c      # cd + update PWD/OLDPWD
+│   │   ├── builtin_pwd.c     # pwd via getcwd
+│   │   ├── builtin_export.c  # export (set env + print declare)
+│   │   ├── builtin_unset.c   # unset
+│   │   ├── builtin_env.c     # env (print env)
+│   │   └── builtin_exit.c    # exit
 │   │
-│   ├── signals/             # 🟢 PESSOA B - Sinais
-│   │   └── signals.c        # Ctrl-C, Ctrl-\, Ctrl-D
+│   ├── signals/              # Tratamento de sinais
+│   │   └── signals.c         # setup_signals, setup_exec_signals,
+│   │                         # setup_child_signals, handle_sigint
 │   │
-│   └── utils/               # 🟡 AMBOS - Utilitários
-│       ├── ft_strlen.c
-│       ├── ft_strdup.c
-│       ├── ft_strjoin.c
-│       ├── ft_strcmp.c
-│       ├── ft_split.c
-│       ├── ft_calloc.c
-│       ├── error_utils.c
-│       └── free_utils.c
+│   └── utils/                # Utilitários gerais
+│       ├── error_utils.c     # handle_error, exit_error
+│       └── free_utils.c      # free_array, safe_free
 │
-└── obj/                     # Arquivos objeto (gitignored)
+└── libraries/
+    └── libft/                # Biblioteca própria
 ```
-
-## 🎯 Divisão de Responsabilidades
-
-### 🔵 PESSOA A - Parsing & Organização
-- **Ambiente**: Converter `envp` em lista ligada, buscar/adicionar/remover variáveis
-- **Lexer**: Tokenizar a string respeitando aspas
-- **Expander**: Substituir `$VAR` e `$?` pelos valores reais
-- **Parser**: Construir a lista de comandos (`t_cmd`) a partir dos tokens
-- **Quotes**: Remover aspas e identificar quando um caractere está quotado
-
-### 🟢 PESSOA B - Execução & Sistema
-- **Executor**: Fork, execve e busca no PATH
-- **Pipes**: Criar pipes e conectar stdout → stdin entre processos
-- **Redirecionamentos**: `<`, `>`, `>>`, `<<` com dup2
-- **Built-ins**: Implementar echo, cd, pwd, export, unset, env, exit
-- **Sinais**: Configurar handlers para Ctrl-C, Ctrl-\ e Ctrl-D
 
 ## 📦 Estruturas de Dados
 
-### Principais structs:
-
 ```c
-t_mini    // Estrutura principal (env, cmd_list, last_exit_status)
-t_env     // Lista ligada de variáveis (key, value, next)
+t_mini    // Estado global do shell (env, cmd_list, last_exit_status, running)
+t_env     // Nó da lista de variáveis de ambiente (key, value, prev, next)
 t_token   // Token do lexer (type, value, next)
-t_cmd     // Nó de comando (args, redirs, next)
+t_cmd     // Nó de comando (args, redirs, pid, next)
 t_redir   // Redirecionamento (type, file, next)
+t_exp_state // Estado interno do expander (result, i, quote_state)
 ```
-
 
 ## ✅ Checklist de Features
 
 ### Obrigatórias
-- [ ] Prompt interativo (readline)
-- [ ] Histórico de comandos
-- [ ] Buscar e executar binários (PATH)
-- [ ] Caminhos relativos e absolutos
-- [ ] Pipes (`|`)
-- [ ] Redirecionamentos (`<`, `>`, `>>`)
-- [ ] Heredoc (`<<`)
-- [ ] Expansão de variáveis (`$VAR`)
-- [ ] Status de saída (`$?`)
-- [ ] Aspas simples (sem expansão)
-- [ ] Aspas duplas (com expansão)
-- [ ] Sinais (Ctrl-C, Ctrl-D, Ctrl-\)
+- [x] Prompt interativo (readline)
+- [x] Histórico de comandos (add_history)
+- [x] Buscar e executar binários via PATH
+- [x] Caminhos relativos e absolutos
+- [x] Pipes (`|`)
+- [x] Redirecionamentos (`<`, `>`, `>>`)
+- [x] Heredoc (`<<`)
+- [x] Expansão de variáveis (`$VAR`)
+- [x] Status de saída (`$?`)
+- [x] Aspas simples (sem expansão)
+- [x] Aspas duplas (com expansão de variáveis)
+- [x] Sinais (Ctrl-C, Ctrl-D, Ctrl-\\)
 
 ### Built-ins
-- [ ] `echo` (com opção `-n`)
-- [ ] `cd` (com caminho relativo/absoluto)
-- [ ] `pwd`
-- [ ] `export`
-- [ ] `unset`
-- [ ] `env`
-- [ ] `exit`
-
-## 🧪 Testes Sugeridos
-
-```bash
-# Comandos simples
-ls -la
-echo "Hello World"
-pwd
-
-# Pipes
-ls -la | grep minishell | wc -l
-cat file.txt | head -5 | tail -2
-
-# Redirecionamentos
-echo "test" > file.txt
-cat < file.txt
-echo "append" >> file.txt
-
-# Variáveis
-echo $USER
-export VAR=42
-echo $VAR
-unset VAR
-
-# Aspas
-echo 'single $USER quotes'
-echo "double $USER quotes"
-
-# Exit status
-ls nonexistent
-echo $?
-```
-
-## 📚 Recursos Úteis
-
-- `man readline`, `man execve`, `man fork`, `man pipe`, `man dup2`
-- [Bash Manual](https://www.gnu.org/software/bash/manual/)
-- [Writing Your Own Shell](https://www.cs.purdue.edu/homes/grr/SystemsProgrammingBook/Book/Chapter5-WritingYourOwnShell.pdf)
+- [x] `echo` (com opção `-n`)
+- [x] `cd` (com caminho relativo/absoluto)
+- [x] `pwd`
+- [x] `export`
+- [x] `unset`
+- [x] `env`
+- [x] `exit`
 
 ## ⚠️ Cuidados Importantes
 
-- **Memory leaks**: Use `valgrind` constantemente
-- **File descriptors**: Sempre feche os FDs que abrir
-- **Sinais**: Configure corretamente para o comportamento esperado
-- **Norminette**: Verifique antes de cada commit
-- **Edge cases**: Teste inputs vazios, muito longos, com caracteres especiais
-
-## 🤝 Autores
-
-- **Pessoa A**: [Nome] - Parsing & Organização
-- **Pessoa B**: [Nome] - Execução & Sistema
-
----
-
-**Boa sorte!** 🚀
+- **Memory leaks**: `readline()` causa leaks internos — não são de responsabilidade do projeto. Todo o resto deve ser liberado corretamente.
+- **File descriptors**: Sempre feche os FDs que abrir.
+- **Sinais**: Três modos — prompt interativo, filho rodando, child process.
+- **Norminette**: Rodar antes de cada commit. Norminette está em `~/Library/Python/3.9/bin/norminette`.
+- **Uma variável global**: Apenas `g_signal` (volatile sig_atomic_t) é permitida.
