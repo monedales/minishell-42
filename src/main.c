@@ -34,35 +34,6 @@ static int	init_minishell(t_mini *mini, char **envp)
 }
 
 /**
- * @brief Removes quotes from all word tokens.
- *
- * Applies quote removal after expansion so parser/executor receive
- * clean arguments and filenames.
- *
- * @param tokens Token list to update in place.
- */
-static void	remove_quotes_from_tokens(t_token *tokens)
-{
-	t_token	*curr;
-	char	*clean;
-
-	curr = tokens;
-	while (curr)
-	{
-		if (curr->type == TOKEN_WORD && curr->value)
-		{
-			clean = remove_quotes(curr->value);
-			if (clean)
-			{
-				free(curr->value);
-				curr->value = clean;
-			}
-		}
-		curr = curr->next;
-	}
-}
-
-/**
  * @brief Processes one full command line.
  *
  * Runs the complete pipeline for one input line:
@@ -121,6 +92,8 @@ static void	repl_loop(t_mini *mini)
 		{
 			mini->last_exit_status = 130;
 			g_signal = 0;
+			free(line);
+			continue ;
 		}
 		if (*line == '\0')
 		{
