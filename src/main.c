@@ -15,8 +15,9 @@
 /**
  * @brief Initializes the main minishell state.
  *
- * Builds the internal environment list from `envp` and sets
- * default runtime fields used by the REPL loop.
+ * Builds the internal environment list from `envp`, sets default
+ * runtime fields, and increments SHLVL to reflect the new shell level.
+ * If SHLVL is not set, initializes it to 1.
  *
  * @param mini Pointer to global shell state.
  * @param envp Environment array received by `main`.
@@ -24,12 +25,26 @@
  */
 static int	init_minishell(t_mini *mini, char **envp)
 {
+	char	*shlvl;
+	int		lvl;
+	char	*new_lvl;
+
 	mini->env = init_env(envp);
 	if (!mini->env)
 		return (ERROR);
 	mini->cmd_list = NULL;
 	mini->last_exit_status = 0;
 	mini->running = TRUE;
+	shlvl = get_env_value(mini->env, "SHLVL");
+	if (shlvl)
+		lvl = ft_atoi(shlvl) + 1;
+	else
+		lvl = 1;
+	new_lvl = ft_itoa(lvl);
+	if (!new_lvl)
+		return (ERROR);
+	set_env_value(&mini->env, "SHLVL", new_lvl);
+	free(new_lvl);
 	return (SUCCESS);
 }
 
