@@ -63,21 +63,18 @@ int	redir_heredoc(char *delimiter)
  * @param orig_stdin  The saved terminal fd (from dup at start of setup).
  * @return SUCCESS or ERROR.
  */
-static int	apply_redir(t_redir *redirs, int orig_stdin)
+static int	apply_redir(t_redir *redir, int orig_stdin)
 {
-	while (redirs)
+	if (redir->type == TKN_REDIR_IN)
+		return (redir_in(redir->file));
+	if (redir->type == TKN_REDIR_OUT)
+		return (redir_out(redir->file, FALSE));
+	if (redir->type == TKN_REDIR_APPEND)
+		return (redir_out(redir->file, TRUE));
+	if (redir->type == TKN_REDIR_HEREDOC)
 	{
-		if (redirs->type == TKN_REDIR_IN)
-			return (redir_in(redirs->file));
-		if (redirs->type == TKN_REDIR_OUT)
-			return (redir_out(redirs->file, FALSE));
-		if (redirs->type == TKN_REDIR_APPEND)
-			return (redir_out(redirs->file, TRUE));
-		if (redirs->type == TKN_REDIR_HEREDOC)
-		{
-			dup2(orig_stdin, STDIN_FILENO);
-			return (redir_heredoc(redirs->file));
-		}
+		dup2(orig_stdin, STDIN_FILENO);
+		return (redir_heredoc(redir->file));
 	}
 	return (SUCCESS);
 }

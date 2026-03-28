@@ -46,12 +46,33 @@ int	wait_child(pid_t pid, t_mini *mini)
 }
 
 /**
+ * @brief Frees inherited shell resources and exits in a child process.
+ *
+ * Called in forked children before exit() to release the copies of
+ * env and cmd_list inherited from the parent via fork().
+ * path and env_arr may be NULL — free/free_array handle it safely.
+ *
+ * @param mini    Main shell structure (owns cmd_list and env)
+ * @param path    Resolved command path to free (or NULL)
+ * @param env_arr env_array to free (or NULL)
+ * @param code    Exit code
+ */
+static void	child_exit(t_mini *mini, char *path, char **env_arr, int code)
+{
+	free(path);
+	free_array(env_arr);
+	free_cmd_list(mini->cmd_list);
+	free_env(mini->env);
+	exit(code);
+}
+
+/**
  * @brief Resolves the command path and executes it with execve.
- * 
+ *
  * Called in the child process. Sets up redirections first,
  * then finds the command path and calls execve.
- * Exits with appropriate code on any error.
- * 
+ * All exit paths call child_exit to free inherited memory before exiting.
+ *
  * @param cmd  Command node
  * @param mini Main shell structure
  */
@@ -59,24 +80,22 @@ void	exec_child(t_cmd *cmd, t_mini *mini)
 {
 	char	*cmd_path;
 	char	**env_array;
-
+ 
 	setup_child_signals();
 	if (setup_redirections(cmd->redirs) == ERROR)
-		exit(1);
+		child_exit(mini, NULL, NULL, 1);
 	cmd_path = find_command_path(cmd->args[0], mini->env);
 	if (!cmd_path)
 	{
 		handle_error(ERR_CMD_NOT_FOUND, cmd->args[0], NULL);
-		exit(127);
+		child_exit(mini, NULL, NULL, 127);
 	}
 	env_array = env_to_array(mini->env);
 	if (!env_array)
-		exit(1);
+		child_exit(mini, cmd_path, NULL, 1);
 	execve(cmd_path, cmd->args, env_array);
 	perror(cmd->args[0]);
-	free(cmd_path);
-	free_array(env_array);
-	exit(126);
+	child_exit(mini, cmd_path, env_array, 126);
 }
 
 /**

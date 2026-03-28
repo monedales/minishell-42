@@ -47,6 +47,7 @@ static void	setup_child_fds(int prev_fd, int *pipefd, int is_last)
  *
  * @param cmd  Command node to execute
  * @param mini Main shell structure
+ * @return Exit code (only if execve failed or command not found)
  */
 static int	exec_pipeline_cmd(t_cmd *cmd, t_mini *mini)
 {
