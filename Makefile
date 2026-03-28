@@ -6,14 +6,14 @@
 #    By: mona <mona@student.42.fr>                  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/21 00:00:00 by mona              #+#    #+#              #
-#    Updated: 2026/03/04 22:16:13 by mona             ###   ########.fr        #
+#    Updated: 2026/03/28 16:10:52 by mona             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = minishell
 
 CC = cc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -Werror -g
 
 # Libft
 LIBFT_DIR = libraries/libft
@@ -192,10 +192,6 @@ re: fclean all
 norm:
 	@echo "📏 Running norminette..."
 	@norminette include/ src/
-
-test: $(NAME)
-	@echo "🧪 Running basic tests..."
-	@./$(NAME)
 
 valgrind: $(NAME)
 	@echo "🔍 Running valgrind..."
