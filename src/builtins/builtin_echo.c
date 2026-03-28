@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/04 21:36:27 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/28 16:08:46 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@
 static int	is_n_flag(char *arg)
 {
 	int	i;
- 
+
 	if (!arg || arg[0] != '-' || arg[1] == '\0')
 		return (FALSE);
 	i = 1;
@@ -66,7 +66,7 @@ int	builtin_echo(char **args)
 {
 	int	i;
 	int	n_flag;
- 
+
 	n_flag = 0;
 	i = 1;
 	while (args[i] && is_n_flag(args[i]))

@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/26 20:36:59 by mona             ###   ########.fr       */
+/*   Updated: 2026/03/28 16:08:27 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ void	exec_child(t_cmd *cmd, t_mini *mini)
 {
 	char	*cmd_path;
 	char	**env_array;
- 
+
 	setup_child_signals();
 	if (setup_redirections(cmd->redirs) == ERROR)
 		child_exit(mini, NULL, NULL, 1);
