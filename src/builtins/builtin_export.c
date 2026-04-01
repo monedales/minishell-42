@@ -108,7 +108,7 @@ void	sort_env(t_env *env)
 				tmp = j->key;
 				j->key = j->next->key;
 				j->next->key = tmp;
-				tmp = j->next->value;
+				tmp = j->value;
 				j->value = j->next->value;
 				j->next->value = tmp;
 			}

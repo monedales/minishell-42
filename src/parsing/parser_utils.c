@@ -87,6 +87,7 @@ t_redir	*create_redir_node(t_token_type type, char *file)
 		return (NULL);
 	}
 	redir->type = type;
+    redir->fd = -1;   
 	redir->next = NULL;
 	return (redir);
 }

@@ -12,7 +12,7 @@
 
 #include "../../include/minishell.h"
 
-volatile sig_atomic_t	g_signal = 0;
+volatile sig_atomic_t   g_signal = 0;
 
 /**
  * @brief Handler for SIGINT (Ctrl+C) at the prompt.
@@ -26,15 +26,16 @@ volatile sig_atomic_t	g_signal = 0;
  *
  * @param sig Signal number (unused)
  */
-void	handle_sigint(int sig)
+void   handle_sigint(int sig)
 {
-	(void)sig;
-	g_signal = 130;
-	write(STDOUT_FILENO, "\n", 1);
-	rl_replace_line("", 0);
-	rl_on_new_line();
-	rl_redisplay();
+    (void)sig;
+    g_signal = 130;
+    write(STDOUT_FILENO, "\n", 1);
+    rl_replace_line("", 0);
+    rl_on_new_line();
+    rl_redisplay();
 }
+
 
 /**
  * @brief Ignores SIGINT in the parent while a child process is running.
@@ -45,15 +46,15 @@ void	handle_sigint(int sig)
  * The child itself handles SIGINT via SIG_DFL (setup_child_signals).
  * After waitpid returns, call setup_signals() to restore normal behavior.
  */
-void	setup_exec_signals(void)
+void    setup_exec_signals(void)
 {
-	struct sigaction	sa;
+    struct sigaction    sa;
 
-	sa.sa_handler = SIG_IGN;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
+    sa.sa_handler = SIG_IGN;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGQUIT, &sa, NULL);
 }
 
 /**
@@ -69,19 +70,19 @@ void	setup_exec_signals(void)
  * Should be called at startup and after each child process finishes,
  * to restore prompt-mode behavior.
  */
-void	setup_signals(void)
+void    setup_signals(void)
 {
-	struct sigaction	sa_int;
-	struct sigaction	sa_quit;
+    struct sigaction    sa_int;
+    struct sigaction    sa_quit;
 
-	sa_int.sa_handler = handle_sigint;
-	sa_int.sa_flags = SA_RESTART;
-	sigemptyset(&sa_int.sa_mask);
-	sigaction(SIGINT, &sa_int, NULL);
-	sa_quit.sa_handler = SIG_IGN;
-	sa_quit.sa_flags = 0;
-	sigemptyset(&sa_quit.sa_mask);
-	sigaction(SIGQUIT, &sa_quit, NULL);
+    sa_int.sa_handler = handle_sigint;
+    sa_int.sa_flags = 0;
+    sigemptyset(&sa_int.sa_mask);
+    sigaction(SIGINT, &sa_int, NULL);
+    sa_quit.sa_handler = SIG_IGN;
+    sa_quit.sa_flags = 0;
+    sigemptyset(&sa_quit.sa_mask);
+    sigaction(SIGQUIT, &sa_quit, NULL);
 }
 
 /**
@@ -95,13 +96,14 @@ void	setup_signals(void)
  *
  * Must be called in every child process (simple cmd and pipeline).
  */
-void	setup_child_signals(void)
+void    setup_child_signals(void)
 {
-	struct sigaction	sa;
+    struct sigaction    sa;
 
-	sa.sa_handler = SIG_DFL;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
+    sa.sa_handler = SIG_DFL;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGQUIT, &sa, NULL);
 }
+

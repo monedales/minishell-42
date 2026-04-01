@@ -9,9 +9,9 @@
 /*   Updated: 2026/03/12 21:04:20 by maria-ol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
+ 
 #include "../../include/minishell.h"
-
+ 
 /**
  * @brief Counts the number of commands in the pipeline list.
  * 
@@ -22,7 +22,7 @@ static int	count_cmds(t_cmd *cmd_list)
 {
 	int		count;
 	t_cmd	*current;
-
+ 
 	count = 0;
 	current = cmd_list;
 	while (current)
@@ -32,7 +32,7 @@ static int	count_cmds(t_cmd *cmd_list)
 	}
 	return (count);
 }
-
+ 
 /**
  * @brief Executes a builtin in the parent process with redirections.
  * 
@@ -50,7 +50,7 @@ static int	exec_builtin_parent(t_cmd *cmd, t_mini *mini)
 	int	saved_in;
 	int	saved_out;
 	int	ret;
-
+ 
 	saved_in = dup(STDIN_FILENO);
 	saved_out = dup(STDOUT_FILENO);
 	if (setup_redirections(cmd->redirs) == ERROR)
@@ -63,7 +63,7 @@ static int	exec_builtin_parent(t_cmd *cmd, t_mini *mini)
 	mini->last_exit_status = ret;
 	return (ret);
 }
-
+ 
 /**
  * @brief Main dispatcher for command list execution.
  * 
@@ -76,10 +76,59 @@ static int	exec_builtin_parent(t_cmd *cmd, t_mini *mini)
  * @param mini     Main shell structure
  * @return Exit status of the last command
  */
+/**
+ * @brief Collects all heredoc inputs for a command list in the parent process.
+ *
+ * Walks every command's redir list and pre-fills each TKN_REDIR_HEREDOC node
+ * with a pipe read fd via collect_heredoc(). This must run before any fork so
+ * that readline never executes inside a child process — preventing the
+ * 'still reachable' leak that occurs when Ctrl+C kills a child mid-readline.
+ *
+ * If Ctrl+C is received during collection, closes already-collected fds and
+ * returns ERROR so execute_cmd_list can propagate the 130 exit status.
+ *
+ * @param cmd_list Linked list of commands to process.
+ * @param mini     Main shell structure (used to update last_exit_status).
+ * @return SUCCESS if all heredocs collected, ERROR on signal or pipe failure.
+ */
+int	collect_all_heredocs(t_cmd *cmd_list, t_mini *mini)
+{
+	t_cmd	*cmd;
+	t_redir	*redir;
+ 
+	(void)mini;
+	cmd = cmd_list;
+	while (cmd)
+	{
+		redir = cmd->redirs;
+		while (redir)
+		{
+			if (redir->type == TKN_REDIR_HEREDOC)
+			{
+				redir->fd = collect_heredoc(redir->file);
+				if (redir->fd == -1)
+					return (ERROR);
+			}
+			redir = redir->next;
+		}
+		cmd = cmd->next;
+	}
+	return (SUCCESS);
+}
+ 
 int	execute_cmd_list(t_cmd *cmd_list, t_mini *mini)
 {
 	if (!cmd_list || !cmd_list->args || !cmd_list->args[0])
 		return (1);
+	if (collect_all_heredocs(cmd_list, mini) == ERROR)
+	{
+		if (g_signal == 130)
+		{
+			mini->last_exit_status = 130;
+			g_signal = 0;
+		}
+		return (mini->last_exit_status);
+	}
 	if (count_cmds(cmd_list) == 1)
 	{
 		if (is_builtin(cmd_list->args[0]))
@@ -88,7 +137,7 @@ int	execute_cmd_list(t_cmd *cmd_list, t_mini *mini)
 	}
 	return (execute_pipeline(cmd_list, mini));
 }
-
+ 
 /**
  * @brief Updates last_status and prints message based on signal received.
  *
@@ -106,7 +155,7 @@ void	handle_signal_status(int status, int *last_status)
 	else if (WTERMSIG(status) == SIGQUIT)
 		write(STDERR_FILENO, "Quit (core dumped)\n", 19);
 }
-
+ 
 /**
  * @brief Forks all child processes in the pipeline and connects pipes.
  *
@@ -123,7 +172,7 @@ int	fork_pipeline(t_cmd *cmd_list, t_mini *mini)
 	t_cmd	*cmd;
 	int		prev_fd;
 	int		pipefd[2];
-
+ 
 	cmd = cmd_list;
 	prev_fd = -1;
 	while (cmd)

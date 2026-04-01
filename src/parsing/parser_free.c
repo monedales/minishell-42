@@ -75,6 +75,8 @@ void	free_redirs(t_redir *redirs)
 	while (redirs != NULL)
 	{
 		tmp = redirs->next;
+        if (redirs->fd >= 0)
+           close(redirs->fd);
 		free(redirs->file);
 		free(redirs);
 		redirs = tmp;

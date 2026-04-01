@@ -74,8 +74,6 @@ char	**env_to_array(t_env *env)
  * 
  * @param env Environment list
  */
-
-// trocar printf por ft_printf
 void	print_env(t_env *env)
 {
 	while (env)
