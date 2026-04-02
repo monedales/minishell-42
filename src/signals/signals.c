@@ -14,6 +14,13 @@
 
 volatile sig_atomic_t   g_signal = 0;
 
+static int	heredoc_event_hook(void)
+{
+	if (g_signal == 130)
+		rl_done = 1;
+	return (0);
+}
+
 /**
  * @brief Handler for SIGINT (Ctrl+C) at the prompt.
  *
@@ -36,6 +43,31 @@ void   handle_sigint(int sig)
     rl_redisplay();
 }
 
+void    handle_sigint_heredoc(int sig)
+{
+    (void)sig;
+    g_signal = 130;
+    //write(STDOUT_FILENO, "\n", 1);
+    rl_replace_line("", 0);
+    rl_on_new_line();
+    rl_done = 1;
+}
+
+void	setup_heredoc_signals(void)
+{
+	struct sigaction	sa_int;
+	struct sigaction	sa_quit;
+
+	sa_int.sa_handler = handle_sigint_heredoc;
+	sa_int.sa_flags = 0;
+	sigemptyset(&sa_int.sa_mask);
+	sigaction(SIGINT, &sa_int, NULL);
+	sa_quit.sa_handler = SIG_IGN;
+	sa_quit.sa_flags = 0;
+	sigemptyset(&sa_quit.sa_mask);
+	sigaction(SIGQUIT, &sa_quit, NULL);
+	rl_event_hook = heredoc_event_hook;
+}
 
 /**
  * @brief Ignores SIGINT in the parent while a child process is running.

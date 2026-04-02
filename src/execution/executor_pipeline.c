@@ -55,7 +55,7 @@ static int	exec_pipeline_cmd(t_cmd *cmd, t_mini *mini)
 	char	**env_array;
 
 	if (is_builtin(cmd->args[0]))
-		exit(execute_builtin(cmd, mini));
+		return (execute_builtin(cmd, mini));
 	path = find_command_path(cmd->args[0], mini->env);
 	if (!path)
 	{

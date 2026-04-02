@@ -32,7 +32,8 @@ int collect_heredoc(char *delimiter)
     if (pipe(pipefd) == -1)
         return (-1);
     g_signal = 0;
-    while (1)
+    setup_heredoc_signals();
+    while (1)	
     {
         line = readline("> ");
         if (g_signal == 130)
@@ -51,6 +52,8 @@ int collect_heredoc(char *delimiter)
         free(line);
     }
     close(pipefd[1]);
+    rl_event_hook = NULL;
+    setup_signals();
     if (g_signal == 130)
     {
         close(pipefd[0]);

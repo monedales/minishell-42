@@ -12,6 +12,13 @@
 
 #include "../../include/minishell.h"
 
+static t_error	get_file_error(void)
+{
+	if (errno == EACCES)
+		return (ERR_PERMISSION);
+	return (ERR_NO_FILE);
+}
+
 /**
  * @brief Restores stdin and stdout from saved file descriptors.
  *
@@ -44,7 +51,7 @@ int	redir_in(char *file)
 	fd = open(file, O_RDONLY);
 	if (fd == -1)
 	{
-		handle_error(ERR_NO_FILE, file, NULL);
+		handle_error(get_file_error(), file, NULL);
 		return (ERROR);
 	}
 	if (dup2(fd, STDIN_FILENO) == -1)
@@ -78,7 +85,7 @@ int	redir_out(char *file, int append)
 	fd = open(file, flags, 0644);
 	if (fd == -1)
 	{
-		handle_error(ERR_NO_FILE, file, NULL);
+		handle_error(get_file_error(), file, NULL);
 		return (ERROR);
 	}
 	if (dup2(fd, STDOUT_FILENO) == -1)
