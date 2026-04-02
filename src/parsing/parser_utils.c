@@ -73,7 +73,7 @@ void	add_cmd(t_cmd **head, t_cmd *new)
  * @param file Filename for the redirection
  * @return Pointer to new redirection node, or NULL if allocation fails
  */
-t_redir	*create_redir_node(t_token_type type, char *file)
+t_redir	*create_redir_node(t_token_type type, char *file, int expand)
 {
 	t_redir	*redir;
 
@@ -87,7 +87,8 @@ t_redir	*create_redir_node(t_token_type type, char *file)
 		return (NULL);
 	}
 	redir->type = type;
-    redir->fd = -1;   
+	redir->fd = -1;
+	redir->expand = expand;
 	redir->next = NULL;
 	return (redir);
 }

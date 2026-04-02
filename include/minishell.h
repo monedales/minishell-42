@@ -100,12 +100,12 @@ typedef struct s_token
 // Redirection node
 typedef struct s_redir
 {
-	t_token_type	type;		// tipo de redirecionamento
-	char			*file;		// nome do arquivo
-	int				fd;			// pre-collected heredoc fd (-1 if not set)
+	t_token_type	type;
+	char			*file;
+	int				fd;
+	int				expand;
 	struct s_redir	*next;
 }	t_redir;
- 
 // Command node (every command's pipeline)
 typedef struct s_cmd
 {
@@ -155,7 +155,7 @@ char		*expand_var_value(const char *var_name, t_mini *mini);
 // Parser - Building command lists
 t_cmd		*parser(t_token *tokens);
 t_cmd		*create_cmd_node(void);
-t_redir		*create_redir_node(t_token_type type, char *file);
+t_redir		*create_redir_node(t_token_type type, char *file, int expand);
 int			count_args(char **args);
 int			add_arg_to_cmd(t_cmd *cmd, char *arg);
 void		add_redir_to_cmd(t_cmd *cmd, t_redir *redir);
@@ -200,7 +200,7 @@ void		restore_fds(int in, int out);
 int			redir_in(char *file);
 int			redir_out(char *file, int append);
 int			setup_redirections(t_redir *redirs);
-int			collect_heredoc(char *delimiter);
+int			collect_heredoc(char *delimiter, int expand, t_mini *mini);
 int			collect_all_heredocs(t_cmd *cmd_list, t_mini *mini);
 void		exec_child(t_cmd *cmd, t_mini *mini);
 int			wait_child(pid_t pid, t_mini *mini);

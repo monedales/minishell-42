@@ -123,7 +123,7 @@ static void	parse_tokens(t_token *curr, t_cmd **cmd_list, t_cmd **current_cmd)
 			|| curr->type == TKN_REDIR_HEREDOC || curr->type == TKN_REDIR_OUT)
 		{
 			ensure_cmd(cmd_list, current_cmd);
-			redir = create_redir_node(curr->type, curr->next->value);
+			redir = create_redir_node(curr->type, curr->next->value, 0);
 			add_redir_to_cmd(*current_cmd, redir);
 			curr = curr->next;
 		}

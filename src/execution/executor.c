@@ -63,19 +63,33 @@ static int	exec_builtin_parent(t_cmd *cmd, t_mini *mini)
 	mini->last_exit_status = ret;
 	return (ret);
 }
- 
-/**
- * @brief Main dispatcher for command list execution.
- * 
- * Decides how to execute based on number of commands:
- *   - 1 command, builtin -> exec_builtin_parent (runs in parent)
- *   - 1 command, external -> execute_simple_cmd (fork + execve)
- *   - 2+ commands -> execute_pipeline (pipes + forks)
- * 
- * @param cmd_list List of commands to execute
- * @param mini     Main shell structure
- * @return Exit status of the last command
- */
+
+static int	has_quotes(char *str)
+{
+	while (*str)
+	{
+		if (*str == '\'' || *str == '"')
+			return (TRUE);
+		str++;
+	}
+	return (FALSE);
+}
+
+static int	process_heredoc_redir(t_redir *redir, t_mini *mini)
+{
+	int		expand;
+	char	*clean;
+
+	expand = !has_quotes(redir->file);
+	clean = remove_quotes(redir->file);
+	free(redir->file);
+	redir->file = clean;
+	redir->fd = collect_heredoc(redir->file, expand, mini);
+	if (redir->fd == -1)
+		return (ERROR);
+	return (SUCCESS);
+}
+
 /**
  * @brief Collects all heredoc inputs for a command list in the parent process.
  *
@@ -95,8 +109,7 @@ int	collect_all_heredocs(t_cmd *cmd_list, t_mini *mini)
 {
 	t_cmd	*cmd;
 	t_redir	*redir;
- 
-	(void)mini;
+
 	cmd = cmd_list;
 	while (cmd)
 	{
@@ -105,8 +118,7 @@ int	collect_all_heredocs(t_cmd *cmd_list, t_mini *mini)
 		{
 			if (redir->type == TKN_REDIR_HEREDOC)
 			{
-				redir->fd = collect_heredoc(redir->file);
-				if (redir->fd == -1)
+				if (process_heredoc_redir(redir, mini) == ERROR)
 					return (ERROR);
 			}
 			redir = redir->next;

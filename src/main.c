@@ -48,6 +48,57 @@ static int	init_minishell(t_mini *mini, char **envp)
 	return (SUCCESS);
 }
 
+static void	remove_quotes_from_redirs(t_cmd *cmd_list)
+{
+	t_cmd	*cmd;
+	t_redir	*redir;
+	char	*clean;
+
+	cmd = cmd_list;
+	while (cmd)
+	{
+		redir = cmd->redirs;
+		while (redir)
+		{
+			if (redir->type != TKN_REDIR_HEREDOC && redir->file)
+			{
+				clean = remove_quotes(redir->file);
+				if (clean)
+				{
+					free(redir->file);
+					redir->file = clean;
+				}
+			}
+			redir = redir->next;
+		}
+		cmd = cmd->next;
+	}
+}
+
+static void	remove_quotes_from_args(t_cmd *cmd_list)
+{
+	t_cmd	*cmd;
+	char	*clean;
+	int		i;
+
+	cmd = cmd_list;
+	while (cmd)
+	{
+		i = 0;
+		while (cmd->args && cmd->args[i])
+		{
+			clean = remove_quotes(cmd->args[i]);
+			if (clean)
+			{
+				free(cmd->args[i]);
+				cmd->args[i] = clean;
+			}
+			i++;
+		}
+		cmd = cmd->next;
+	}
+}
+
 /**
  * @brief Processes one full command line.
  *
@@ -72,7 +123,6 @@ static void	process_line(char *line, t_mini *mini)
 	if (!tokens)
 		return ;
 	expand_tokens(tokens, mini);
-	remove_quotes_from_tokens(tokens);
 	mini->cmd_list = parser(tokens);
 	free_tokens(tokens);
 	if (!mini->cmd_list)
@@ -80,6 +130,8 @@ static void	process_line(char *line, t_mini *mini)
 		mini->last_exit_status = 2;
 		return ;
 	}
+	remove_quotes_from_args(mini->cmd_list);
+	remove_quotes_from_redirs(mini->cmd_list);
 	mini->last_exit_status = execute_cmd_list(mini->cmd_list, mini);
 	free_cmd_list(mini->cmd_list);
 	mini->cmd_list = NULL;

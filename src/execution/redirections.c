@@ -12,6 +12,22 @@
  
 #include "../../include/minishell.h"
 
+static int	write_heredoc_line(char *line, int fd, int expand, t_mini *mini)
+{
+	char	*expanded;
+
+	if (expand)
+	{
+		expanded = expand_string(line, mini);
+		ft_putstr_fd(expanded, fd);
+		free(expanded);
+	}
+	else
+		ft_putstr_fd(line, fd);
+	ft_putstr_fd("\n", fd);
+	return (SUCCESS);
+}
+
 /**
  * @brief Collects heredoc input from the terminal and returns a pipe read fd.
  *
@@ -24,42 +40,38 @@
  * @param delimiter The stop word (e.g. "EOF")
  * @return Read end of the pipe containing the collected input, or -1 on error
  */
-int collect_heredoc(char *delimiter)
+int	collect_heredoc(char *delimiter, int expand, t_mini *mini)
 {
-    int     pipefd[2];
-    char    *line;
- 
-    if (pipe(pipefd) == -1)
-        return (-1);
-    g_signal = 0;
-    setup_heredoc_signals();
-    while (1)	
-    {
-        line = readline("> ");
-        if (g_signal == 130)
-        {
-            safe_free((void **)&line);
-            break ; 
-        }
-        if (!line
-            || ft_strncmp(line, delimiter, ft_strlen(delimiter) + 1) == 0)
-        {
-            free(line);
-            break ;
-        }
-        ft_putstr_fd(line, pipefd[1]);
-        ft_putstr_fd("\n", pipefd[1]);
-        free(line);
-    }
-    close(pipefd[1]);
-    rl_event_hook = NULL;
-    setup_signals();
-    if (g_signal == 130)
-    {
-        close(pipefd[0]);
-        return (-1);
-    }
-    return (pipefd[0]);
+	int		pipefd[2];
+	char	*line;
+
+	if (pipe(pipefd) == -1)
+		return (-1);
+	g_signal = 0;
+	setup_heredoc_signals();
+	while (1)
+	{
+		line = readline("> ");
+		if (g_signal == 130)
+		{
+			safe_free((void **)&line);
+			break ;
+		}
+		if (!line
+			|| ft_strncmp(line, delimiter, ft_strlen(delimiter) + 1) == 0)
+		{
+			free(line);
+			break ;
+		}
+		write_heredoc_line(line, pipefd[1], expand, mini);
+		free(line);
+	}
+	close(pipefd[1]);
+	rl_event_hook = NULL;
+	setup_signals();
+	if (g_signal == 130)
+		return (close(pipefd[0]), -1);
+	return (pipefd[0]);
 }
 
 /**
