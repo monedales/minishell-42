@@ -87,12 +87,12 @@ void	child_process(t_cmd *cmd, int prev_fd, int *pipefd, t_mini *mini)
 {
 	int	code;
 
-	setup_child_signals();
+	setup_child_fds(prev_fd, pipefd, !cmd->next);
 	if (setup_redirections(cmd->redirs) == ERROR)
 		code = 1;
 	else
 	{
-		setup_child_fds(prev_fd, pipefd, !cmd->next);
+
 		code = exec_pipeline_cmd(cmd, mini);
 	}
 	free_cmd_list(mini->cmd_list);

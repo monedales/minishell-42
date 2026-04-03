@@ -149,15 +149,17 @@ static void	process_line(char *line, t_mini *mini)
 static void	repl_loop(t_mini *mini)
 {
 	char	*line;
-
+	
 	while (mini->running)
 	{
+		line = readline("minishell$ ");
 		if (g_signal == 130)
 		{
 			mini->last_exit_status = 130;
 			g_signal = 0;
+			free(line);
+			continue ;
 		}
-		line = readline("minishell$ ");
 		if (!line)
 			return ((void)printf("exit\n"));
 		if (*line == '\0')

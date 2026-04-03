@@ -40,14 +40,13 @@ void   handle_sigint(int sig)
     write(STDOUT_FILENO, "\n", 1);
     rl_replace_line("", 0);
     rl_on_new_line();
-    rl_redisplay();
 }
 
 void    handle_sigint_heredoc(int sig)
 {
     (void)sig;
     g_signal = 130;
-    //write(STDOUT_FILENO, "\n", 1);
+    write(STDOUT_FILENO, "\n", 1);
     rl_replace_line("", 0);
     rl_on_new_line();
     rl_done = 1;
@@ -89,6 +88,14 @@ void    setup_exec_signals(void)
     sigaction(SIGQUIT, &sa, NULL);
 }
 
+int	prompt_event_hook(void)
+{
+	if (g_signal == 130)
+		rl_done = 1;
+	return (0);
+}
+
+
 /**
  * @brief Configures signal handlers for interactive prompt mode.
  *
@@ -115,6 +122,7 @@ void    setup_signals(void)
     sa_quit.sa_flags = 0;
     sigemptyset(&sa_quit.sa_mask);
     sigaction(SIGQUIT, &sa_quit, NULL);
+   	rl_event_hook = prompt_event_hook;
 }
 
 /**
