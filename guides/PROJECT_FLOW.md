@@ -9,14 +9,16 @@ desde a inicialização até o encerramento.
 
 ```
 main()
- ├── init_minishell()          → cria t_mini + lista de env
- ├── setup_signals()           → configura SIGINT / SIGQUIT
+ ├── init_minishell()          → cria t_mini + lista de env + incrementa SHLVL
+ ├── setup_signals()           → configura SIGINT / SIGQUIT + prompt_event_hook
  ├── repl_loop()               → loop principal (REPL)
  │    └── process_line()       → pipeline de parsing + execução
  │         ├── lexer()
  │         ├── expand_tokens()
  │         ├── remove_quotes_from_tokens()
  │         ├── parser()
+ │         ├── remove_quotes_from_args()
+ │         ├── remove_quotes_from_redirs()
  │         └── execute_cmd_list()
  └── cleanup_minishell()       → libera toda a memória
 ```
@@ -29,12 +31,13 @@ main()
 - Recebe `envp` (array de strings `CHAVE=VALOR` do processo pai).
 - Chama `init_env(envp)` que converte cada string em um nó `t_env` (doubly linked list).
 - Inicializa `mini.running = TRUE`, `mini.last_exit_status = 0`, `mini.cmd_list = NULL`.
+- Incrementa `SHLVL` para rastrear nível de subshell.
 
 ### `setup_signals()`
 - Configura dois handlers com `sigaction`:
-  - **SIGINT (Ctrl-C)**: chama `handle_sigint()` → escreve `\n`, limpa readline, redesenha prompt.
+  - **SIGINT (Ctrl-C)**: chama `handle_sigint()` → `g_signal=130`, escreve `\n`, limpa readline.
   - **SIGQUIT (Ctrl-\\)**: ignorado (`SIG_IGN`), igual ao bash interativo.
-- Usa `SA_RESTART` para que `readline` não seja interrompido no meio de uma leitura.
+- Instala `prompt_event_hook` no readline para que o `rl_done` seja setado quando `g_signal == 130`, fazendo readline retornar imediatamente.
 
 ---
 
@@ -55,7 +58,7 @@ readline("minishell$ ")
 
 ## 3. Pipeline de parsing — `process_line()`
 
-Para cada linha não-vazia, são executados 4 passos em sequência:
+Para cada linha não-vazia, são executados os seguintes passos em sequência:
 
 ```
   linha bruta (string)
@@ -80,6 +83,12 @@ Para cada linha não-vazia, são executados 4 passos em sequência:
   ┌────────┐
   │ Parser │   → t_cmd *
   └────────┘
+       │
+       ▼
+  ┌───────────────────────┐
+  │ remove_quotes_from_   │   → remove aspas dos args e redirs dos t_cmd
+  │ args() + redirs()     │
+  └───────────────────────┘
        │
        ▼
   ┌──────────┐
@@ -116,7 +125,13 @@ Percorre a lista de tokens e substitui variáveis **in-place** em cada `TOKEN_WO
 - Filenames de redirecionamento (`< $ARQUIVO`) também são expandidos.
 - Usa `t_exp_state` para rastrear o buffer, índice e estado de aspas durante o loop.
 
-### 3.3 Parser (`parser.c`)
+### 3.3 Remoção de aspas (`quotes_utils.c`)
+
+Após a expansão, as aspas são removidas em dois momentos:
+1. `remove_quotes_from_tokens()` — remove aspas dos tokens antes do parser.
+2. `remove_quotes_from_args()` + `remove_quotes_from_redirs()` — remove aspas dos argumentos e filenames de redirecionamento nos `t_cmd`, exceto heredocs (tratados separadamente em `executor_heredoc.c`).
+
+### 3.4 Parser (`parser.c`)
 
 Converte a lista de tokens em uma lista ligada de `t_cmd`.
 
@@ -130,15 +145,28 @@ Converte a lista de tokens em uma lista ligada de `t_cmd`.
 
 ## 4. Execução (`executor.c`)
 
-`execute_cmd_list()` decide o caminho de execução:
+`execute_cmd_list()` primeiro coleta todos os heredocs no processo pai, depois decide o caminho de execução:
 
 ```
+collect_all_heredocs()       →  coleta heredocs ANTES de qualquer fork
+        │
+        ▼
 count_cmds == 1 && builtin?  →  exec_builtin_parent()   (no processo pai)
 count_cmds == 1 && externo?  →  execute_simple_cmd()     (fork + execve)
 count_cmds >= 2?             →  execute_pipeline()       (N forks + pipes)
 ```
 
-### 4.1 Builtin no pai (`exec_builtin_parent`)
+### 4.1 Coleta de heredocs (`executor_heredoc.c`)
+
+Antes de qualquer fork, `collect_all_heredocs()` percorre todos os comandos e:
+1. Verifica se o delimitador tem aspas (`has_quotes`) — se sim, desativa expansão.
+2. Remove aspas do delimitador (`remove_quotes`).
+3. Chama `collect_heredoc()` que lê linhas via readline até o delimitador.
+4. Armazena o fd do pipe de leitura em `redir->fd`.
+
+Se Ctrl+C é recebido durante a coleta, retorna ERROR e `g_signal = 130`.
+
+### 4.2 Builtin no pai (`exec_builtin_parent`)
 
 Builtins rodam no processo pai — precisam modificar o estado do shell.
 
@@ -152,7 +180,7 @@ execute_builtin()
 restore_fds()
 ```
 
-### 4.2 Comando externo simples (`execute_simple_cmd`)
+### 4.3 Comando externo simples (`executor_simple.c`)
 
 ```
 fork()
@@ -165,12 +193,12 @@ fork()
            wait_child()             ← waitpid + setup_signals() + exit status
 ```
 
-### 4.3 Pipeline (`execute_pipeline` + `fork_pipeline`)
+### 4.4 Pipeline (`executor_pipeline.c` + `executor_pipeline_child.c`)
 
 ```
 fork_pipeline():
   Para cada cmd: pipe() → fork()
-    filho: child_process() → setup_child_signals() → redirections → exec
+    filho: child_process() → setup_child_fds() → redirections → exec
     pai: fecha fds, passa prev_fd para próximo
 
 setup_exec_signals()   ← pai ignora sinais durante wait
@@ -178,18 +206,22 @@ setup_exec_signals()   ← pai ignora sinais durante wait
 wait_all():
   waitpid() para cada filho
   último cmd determina exit status
+  handle_signal_status() se filho morto por sinal
   setup_signals()        ← restaura handlers do prompt
 ```
 
-### 4.4 Sinais — três modos (`signals.c`)
+### 4.5 Sinais — quatro modos (`signals.c` + `signals_hooks.c`)
 
-| Modo         | Função              | SIGINT          | SIGQUIT    |
-|--------------|---------------------|-----------------|------------|
-| Prompt       | `setup_signals()`   | `handle_sigint` | `SIG_IGN`  |
-| Pai c/ filho | `setup_exec_signals()` | `SIG_IGN`    | `SIG_IGN`  |
-| Filho        | `setup_child_signals()` | `SIG_DFL`   | `SIG_DFL`  |
+| Modo         | Função                    | SIGINT                 | SIGQUIT    |
+|--------------|---------------------------|------------------------|------------|
+| Prompt       | `setup_signals()`         | `handle_sigint`        | `SIG_IGN`  |
+| Heredoc      | `setup_heredoc_signals()` | `handle_sigint_heredoc`| `SIG_IGN`  |
+| Pai c/ filho | `setup_exec_signals()`    | `SIG_IGN`              | `SIG_IGN`  |
+| Filho        | `setup_child_signals()`   | `SIG_DFL`              | `SIG_DFL`  |
 
-### 4.5 Redirections
+Cada modo de prompt/heredoc instala um **event hook** no readline (`prompt_event_hook` / `heredoc_event_hook`) que verifica `g_signal` e seta `rl_done = 1` para forçar o readline a retornar.
+
+### 4.6 Redirections
 
 | Tipo               | Arquivo                    | Operação                              |
 |--------------------|----------------------------|---------------------------------------|
@@ -205,9 +237,9 @@ wait_all():
 | Builtin  | Comportamento principal                                   |
 |----------|-----------------------------------------------------------|
 | `echo`   | Imprime args; `-n` suprime `\n`                           |
-| `cd`     | `chdir()`, atualiza `PWD`/`OLD_PWD` no `t_env`           |
+| `cd`     | `chdir()`, atualiza `PWD`/`OLDPWD` no `t_env`            |
 | `pwd`    | Imprime diretório atual via `getcwd()`                    |
-| `export` | Adiciona/atualiza variável no `t_env`                     |
+| `export` | Adiciona/atualiza variável no `t_env`; sem args → `declare -x` |
 | `unset`  | Remove variável do `t_env`                                |
 | `env`    | Imprime todos os pares `KEY=VALUE` do `t_env`             |
 | `exit`   | Seta `mini->running = FALSE`, retorna o código            |
@@ -257,14 +289,17 @@ clear_history()
 ## 8. Ciclo de vida da memória por linha
 
 ```
-readline()              → string bruta (heap, free após process_line)
-lexer()                 → t_token list (heap, free_tokens após parser)
-expander()              → modifica valores dos tokens in-place
+readline()                  → string bruta (heap, free após process_line)
+lexer()                     → t_token list (heap, free_tokens após parser)
+expander()                  → modifica valores dos tokens in-place
 remove_quotes_from_tokens() → modifica tokens in-place
-parser()                → t_cmd list (heap, free_cmd_list após execute)
-executor()              → fork/execve ou builtin direto
-free_cmd_list()         → libera t_cmd + t_redir + args
-free(line)              → libera string do readline
+parser()                    → t_cmd list (heap, free_cmd_list após execute)
+remove_quotes_from_args()   → modifica args in-place nos t_cmd
+remove_quotes_from_redirs() → modifica redirs in-place nos t_cmd
+collect_all_heredocs()      → abre pipes para heredocs (fds nos t_redir)
+executor()                  → fork/execve ou builtin direto
+free_cmd_list()             → libera t_cmd + t_redir + args + fecha fds
+free(line)                  → libera string do readline
 ```
 
 Nenhum desses recursos sobrevive entre iterações do REPL.

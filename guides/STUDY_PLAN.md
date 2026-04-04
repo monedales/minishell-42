@@ -42,8 +42,8 @@ Usa 3 arquivos de apoio:
 4. Explicar em voz alta: "O que acontece desde que o programa inicia até o primeiro prompt?" (5 min)
 
 **✍️ Anotar no caderno:**
-- [ ] REPL = Read → Eval → Print → Loop
-- [ ] init → setup_signals → repl_loop → cleanup
+- [x] REPL = Read → Eval → Print → Loop
+- [x] init → setup_signals → repl_loop → cleanup
 
 **🎮 Mini-Desafio:** Fechar o arquivo e desenhar no papel o fluxo do main
 
@@ -59,10 +59,11 @@ Usa 3 arquivos de apoio:
 4. Desenhar no papel: t_mini contendo t_env list e t_cmd list (7 min)
 
 **✍️ Anotar no caderno:**
-- [ ] t_mini: env, cmd_list, last_exit_status, running
-- [ ] t_env: key, value, prev, next
-- [ ] t_cmd: args, redirs, pid, next
-- [ ] Por que doubly linked: remoção eficiente sem percorrer tudo
+- [x] t_mini: env, cmd_list, last_exit_status, running
+- [x] t_env: key, value, prev, next
+- [x] t_cmd: args, redirs, pid, next
+- [x] t_redir: type, file, fd, expand, next
+- [x] Por que doubly linked: remoção eficiente sem percorrer tudo
 
 **🎮 Mini-Desafio:** Explica por que t_env tem `prev` e `next` em vez de só `next`
 
@@ -77,15 +78,16 @@ Usa 3 arquivos de apoio:
 
 **📖 Fazer:**
 1. Ler PROJECT_FLOW.md — seção "Loop principal" (5 min)
-2. Ler CONCEPTS.md — seção "Sinais — três modos" (10 min)
-3. Abrir `src/signals/signals.c` e ler as 4 funções (5 min)
+2. Ler CONCEPTS.md — seção "Sinais — quatro modos" (10 min)
+3. Abrir `src/signals/signals.c` e `signals_hooks.c` — ler todas as funções (5 min)
 4. Testar no terminal: `./minishell` → ctrl-C, ctrl-\, ctrl-D (5 min)
 
 **✍️ Anotar no caderno:**
-- [ ] ctrl-D = readline retorna NULL = sai
-- [ ] ctrl-C no prompt = g_signal=130, novo prompt
-- [ ] ctrl-\ no prompt = nada (SIG_IGN)
-- [ ] Três modos: setup_signals / setup_exec_signals / setup_child_signals
+- [x] ctrl-D = readline retorna NULL = sai
+- [x] ctrl-C no prompt = g_signal=130, novo prompt
+- [x] ctrl-\ no prompt = nada (SIG_IGN)
+- [x] Quatro modos: setup_signals / setup_heredoc_signals / setup_exec_signals / setup_child_signals
+- [x] Event hooks: prompt_event_hook e heredoc_event_hook verificam g_signal e setam rl_done
 
 **🎮 Mini-Desafio:** Explica o que acontece quando ctrl-C é apertado com `cat` rodando
 
@@ -103,9 +105,9 @@ Usa 3 arquivos de apoio:
 4. Explicar em voz alta o que acontece com `'hello world'` (tem espaço dentro de aspas) (4 min)
 
 **✍️ Anotar no caderno:**
-- [ ] Separadores: espaço, tab, |, <, >
-- [ ] Dentro de aspas: separadores são parte da palavra
-- [ ] Estados: QUOTE_NONE, QUOTE_SINGLE, QUOTE_DOUBLE
+- [x] Separadores: espaço, tab, |, <, >
+- [x] Dentro de aspas: separadores são parte da palavra
+- [x] Estados: QUOTE_NONE, QUOTE_SINGLE, QUOTE_DOUBLE
 
 **🎮 Mini-Desafio:** No papel, tokeniza `ls -la | grep .c > /tmp/out.txt`
 
@@ -121,10 +123,10 @@ Usa 3 arquivos de apoio:
 4. Testar no minishell: `echo $USER`, `echo '$USER'`, `echo "$USER"`, `echo $?` (7 min)
 
 **✍️ Anotar no caderno:**
-- [ ] $VAR → get_env_value() → valor
-- [ ] $? → ft_itoa(last_exit_status)
-- [ ] '' bloqueia tudo; "" permite $
-- [ ] Expander roda ANTES de remover aspas (as aspas controlam o que expande)
+- [x] $VAR → get_env_value() → valor
+- [x] $? → ft_itoa(last_exit_status)
+- [x] '' bloqueia tudo; "" permite $
+- [x] Expander roda ANTES de remover aspas (as aspas controlam o que expande)
 
 **🎮 Mini-Desafio:** O que sai de `echo "$HOME is '$USER'"`?
 
@@ -143,10 +145,10 @@ Usa 3 arquivos de apoio:
 3. Traçar no papel: `ls -la | grep src | wc -l` → 3 nós t_cmd ligados (7 min)
 
 **✍️ Anotar no caderno:**
-- [ ] validate_syntax: pipe no início/fim, redirecionamento sem arquivo
-- [ ] TOKEN_WORD → add_arg_to_cmd
-- [ ] TKN_REDIR_* → create_redir_node → add_redir_to_cmd
-- [ ] TOKEN_PIPE → current_cmd = NULL (próximo word cria novo cmd)
+- [x] validate_syntax: pipe no início/fim, redirecionamento sem arquivo
+- [x] TOKEN_WORD → add_arg_to_cmd
+- [x] TKN_REDIR_* → create_redir_node → add_redir_to_cmd
+- [x] TOKEN_PIPE → current_cmd = NULL (próximo word cria novo cmd)
 
 **🎮 Mini-Desafio:** O que o parser produz para `< in.txt cat > out.txt`?
 
@@ -163,11 +165,11 @@ Usa 3 arquivos de apoio:
 3. Explicar em voz alta: "Por que fork antes do execve?" (5 min)
 
 **✍️ Anotar no caderno:**
-- [ ] fork() = duplica processo
-- [ ] execve() = substitui processo (nunca retorna se OK)
-- [ ] filho: setup_child_signals → redirections → find_path → execve
-- [ ] pai: setup_exec_signals → waitpid → setup_signals
-- [ ] WIFEXITED / WIFSIGNALED → exit status
+- [x] fork() = duplica processo
+- [x] execve() = substitui processo (nunca retorna se OK)
+- [x] filho: setup_child_signals → redirections → find_path → execve
+- [x] pai: setup_exec_signals → waitpid → setup_signals
+- [x] WIFEXITED / WIFSIGNALED → exit status
 
 **🎮 Mini-Desafio:** O que acontece se execve falha? Qual exit code?
 
@@ -183,10 +185,10 @@ Usa 3 arquivos de apoio:
 4. Testar: `cd`, `cd /tmp`, `pwd`, `export X=1`, `echo $X`, `unset X`, `exit 42` (7 min)
 
 **✍️ Anotar no caderno:**
-- [ ] Por que no pai: cd/export/exit mudam estado do shell
-- [ ] exit não chama exit() → mini->running = FALSE
-- [ ] cd sem arg → $HOME via get_env_value
-- [ ] export sem arg → imprime declare -x
+- [x] Por que no pai: cd/export/exit mudam estado do shell
+- [x] exit não chama exit() → mini->running = FALSE
+- [x] cd sem arg → $HOME via get_env_value
+- [x] export sem arg → imprime declare -x
 
 **🎮 Mini-Desafio:** Por que `export X=1 | cat` não define X no shell atual?
 
@@ -196,19 +198,20 @@ Usa 3 arquivos de apoio:
 
 ---
 
-### ✅ Sessão 9: Pipes e redirecionamentos (25 min)
-**OBJETIVO:** Entender como pipe conecta processos e como redir muda stdin/stdout
+### ✅ Sessão 9: Pipes, redirecionamentos e heredocs (25 min)
+**OBJETIVO:** Entender como pipe conecta processos, como redir muda stdin/stdout, e como heredocs funcionam
 
 **📖 Fazer:**
 1. Ler CONCEPTS.md — seções "Pipes" e "Redirecionamentos" (10 min)
-2. Abrir `src/execution/executor_pipeline.c` e ver `child_process` e `wait_all` (8 min)
-3. Ver `src/execution/redirections.c` e `redirections_utils.c` (7 min)
+2. Abrir `src/execution/executor_pipeline.c` e `executor_pipeline_child.c` — ver `fork_pipeline`, `child_process` e `wait_all` (8 min)
+3. Ver `src/execution/executor_heredoc.c` e `redirections.c` (7 min)
 
 **✍️ Anotar no caderno:**
-- [ ] pipe(): pipefd[0]=leitura, pipefd[1]=escrita
-- [ ] dup2(pipefd[1], STDOUT_FILENO) → stdout vai pro pipe
-- [ ] pai fecha os dois lados após fork → filho recebe EOF
-- [ ] setup_redirections salva orig_stdin (por causa de heredocs múltiplos)
+- [x] pipe(): pipefd[0]=leitura, pipefd[1]=escrita
+- [x] dup2(pipefd[1], STDOUT_FILENO) → stdout vai pro pipe
+- [x] pai fecha os dois lados após fork → filho recebe EOF
+- [x] Heredocs coletados antes do fork (collect_all_heredocs)
+- [x] Delimitador com aspas → sem expansão dentro do heredoc
 
 **🎮 Mini-Desafio:** Explica o que acontece com os FDs em `ls | grep src | wc -l`
 
@@ -226,10 +229,10 @@ Usa 3 arquivos de apoio:
 4. Testar erros: `cd /x`, `notexist`, `exit abc`, `|` (5 min)
 
 **✍️ Anotar no caderno:**
-- [ ] init_env: envp (char**) → t_env list
-- [ ] env_to_array: t_env → char** (para execve)
-- [ ] Formato: `minishell: [cmd]: [detalhe]: mensagem`
-- [ ] Erros vão para stderr (fd 2)
+- [x] init_env: envp (char**) → t_env list
+- [x] env_to_array: t_env → char** (para execve)
+- [x] Formato: `minishell: [cmd]: [detalhe]: mensagem`
+- [x] Erros vão para stderr (fd 2)
 
 ---
 
@@ -251,8 +254,8 @@ Usa 3 arquivos de apoio:
 **📖 Fazer:**
 1. Timer 4 min: explica o problema — o que o minishell faz
 2. Timer 4 min: explica o fluxo do main ao executor
-3. Timer 4 min: explica parsing (lexer → expander → parser)
-4. Timer 4 min: explica sinais (por que 3 funções?)
+3. Timer 4 min: explica parsing (lexer → expander → remove_quotes → parser)
+4. Timer 4 min: explica sinais (por que 4 funções de setup?)
 5. Timer 4 min: explica fork + execve + por que builtins no pai
 6. Timer 5 min: responde as perguntas do CHEAT_SHEET sem olhar
 
@@ -265,37 +268,38 @@ Usa 3 arquivos de apoio:
 Marca quando conseguires explicar sem olhar:
 
 ### Conceitos
-- [ ] O que é o REPL?
-- [ ] Por que fork antes do execve?
-- [ ] O que é um pipe e como conecta processos?
-- [ ] Diferença entre `>` e `>>`
-- [ ] O que faz o heredoc `<<`?
-- [ ] Por que `$USER` expande mas `'$USER'` não?
-- [ ] Por que remover aspas depois de expandir?
-- [ ] O que é $? e como é calculado?
+- [x] O que é o REPL?
+- [x] Por que fork antes do execve?
+- [x] O que é um pipe e como conecta processos?
+- [x] Diferença entre `>` e `>>`
+- [x] O que faz o heredoc `<<`?
+- [x] Por que `$USER` expande mas `'$USER'` não?
+- [x] Por que remover aspas depois de expandir?
+- [x] O que é $? e como é calculado?
 
 ### Sinais
-- [ ] Por que três funções de setup de sinais?
-- [ ] O que cada uma configura?
-- [ ] Por que o filho reseta para SIG_DFL?
-- [ ] O que SA_RESTART faz?
-- [ ] Por que g_signal = 130 e não 2?
+- [x] Por que quatro funções de setup de sinais?
+- [x] O que cada uma configura?
+- [x] Por que o filho reseta para SIG_DFL?
+- [x] O que são os event hooks do readline?
+- [x] Por que g_signal = 130 e não 2?
 
 ### Execução
-- [ ] Como o executor decide o caminho (builtin/simples/pipeline)?
-- [ ] Por que builtins rodam no pai?
-- [ ] O que exec_builtin_parent faz com os fds?
-- [ ] Como o pipeline conecta stdout → stdin entre processos?
-- [ ] O que acontece com os FDs que o pai não usa?
+- [x] Como o executor decide o caminho (builtin/simples/pipeline)?
+- [x] Por que builtins rodam no pai?
+- [x] O que exec_builtin_parent faz com os fds?
+- [x] Como o pipeline conecta stdout → stdin entre processos?
+- [x] O que acontece com os FDs que o pai não usa?
+- [x] Por que heredocs são coletados antes do fork?
 
 ### Builtins
-- [ ] Por que `exit` não chama `exit()` diretamente?
-- [ ] O que `cd` sem argumento faz?
-- [ ] O que `export` sem argumento faz?
-- [ ] O que `unset` faz com variável inexistente?
+- [x] Por que `exit` não chama `exit()` diretamente?
+- [x] O que `cd` sem argumento faz?
+- [x] O que `export` sem argumento faz?
+- [x] O que `unset` faz com variável inexistente?
 
 ### Código
-- [ ] Onde está cada funcionalidade no código?
+- [x] Onde está cada funcionalidade no código?
 - [ ] Consigo abrir qualquer arquivo e explicar o que cada função faz
 - [ ] Consigo traçar o fluxo de `echo $USER | cat` do início ao fim
 

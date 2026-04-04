@@ -11,20 +11,23 @@
 ```
 main()
   │
-  ├─ init_minishell()   → envp → t_env list
-  ├─ setup_signals()    → SIGINT=handler / SIGQUIT=IGN
+  ├─ init_minishell()   → envp → t_env list + SHLVL++
+  ├─ setup_signals()    → SIGINT=handler / SIGQUIT=IGN + prompt_event_hook
   │
   └─ repl_loop():
        readline()
          ├─ NULL + ctrl-D      → "exit\n", para
          ├─ g_signal == 130    → atualiza $?, continua
          └─ linha com texto    → process_line():
-              lexer()                → tokens
-              expand_tokens()        → $VAR, $?
-              remove_quotes()        → limpa aspas
-              parser()               → t_cmd list
-              execute_cmd_list()     → roda
-              free_cmd_list()        → libera
+              lexer()                    → tokens
+              expand_tokens()            → $VAR, $?
+              remove_quotes_from_tokens()→ limpa aspas dos tokens
+              parser()                   → t_cmd list
+              remove_quotes_from_args()  → limpa aspas dos args
+              remove_quotes_from_redirs()→ limpa aspas dos redirs
+              collect_all_heredocs()     → coleta heredocs no pai
+              execute_cmd_list()         → roda
+              free_cmd_list()            → libera
 ```
 
 ---
@@ -40,13 +43,21 @@ t_mini                    t_env
 │ running: TRUE    │      │ next →      │
 └──────────────────┘      └─────────────┘
 
-t_cmd                     t_token
-┌──────────────────┐      ┌──────────────┐
-│ args: ["ls",NULL]│      │ type: WORD   │
-│ redirs → list    │      │ value: "ls"  │
-│ pid              │      │ next →       │
-│ next →           │      └──────────────┘
-└──────────────────┘
+t_cmd                     t_redir
+┌──────────────────┐      ┌──────────────────┐
+│ args: ["ls",NULL]│      │ type: REDIR_IN   │
+│ redirs → list    │      │ file: "input.txt"│
+│ pid              │      │ fd: -1           │
+│ next →           │      │ expand: 1        │
+└──────────────────┘      │ next →           │
+                          └──────────────────┘
+
+t_token                   t_exp_state
+┌──────────────┐          ┌──────────────┐
+│ type: WORD   │          │ result: "…"  │
+│ value: "ls"  │          │ i: 5         │
+│ next →       │          │ state: NONE  │
+└──────────────┘          └──────────────┘
 ```
 
 ---
@@ -65,15 +76,20 @@ Um filho mudaria só a si mesmo e o shell não saberia.
 
 ---
 
-## 🔐 Sinais — três modos (copiar como tabela)
+## 🔐 Sinais — quatro modos (copiar como tabela)
 
-| Quando            | Função                   | SIGINT          | SIGQUIT   |
-|-------------------|--------------------------|-----------------|-----------|
-| prompt            | `setup_signals()`        | `handle_sigint` | `SIG_IGN` |
-| pai c/ filho      | `setup_exec_signals()`   | `SIG_IGN`       | `SIG_IGN` |
-| filho (pós-fork)  | `setup_child_signals()`  | `SIG_DFL`       | `SIG_DFL` |
+| Quando             | Função                    | SIGINT                  | SIGQUIT   |
+|--------------------|---------------------------|-------------------------|-----------|
+| prompt             | `setup_signals()`         | `handle_sigint`         | `SIG_IGN` |
+| heredoc            | `setup_heredoc_signals()` | `handle_sigint_heredoc` | `SIG_IGN` |
+| pai c/ filho       | `setup_exec_signals()`    | `SIG_IGN`               | `SIG_IGN` |
+| filho (pós-fork)   | `setup_child_signals()`   | `SIG_DFL`               | `SIG_DFL` |
 
-**handle_sigint:** `g_signal=130` + `write("\n")` + limpa readline + redesenha prompt
+**handle_sigint:** `g_signal=130` + `write("\n")` + limpa readline
+**handle_sigint_heredoc:** idem + `rl_done=1` para forçar retorno
+
+**Event hooks:** `prompt_event_hook` e `heredoc_event_hook` verificam
+`g_signal == 130` e setam `rl_done = 1` para readline retornar.
 
 **Por que filho reseta?**
 Herda `SIG_IGN` do pai → ctrl-\ seria ignorado pelo `cat` sem o reset.
@@ -81,23 +97,22 @@ Herda `SIG_IGN` do pai → ctrl-\ seria ignorado pelo `cat` sem o reset.
 **Por que g_signal = 130?**
 Exit status de processo morto por sinal = 128 + N. SIGINT = 2. 128+2 = **130**.
 
-**Por que SA_RESTART?**
-Sem ele, no macOS o readline retorna NULL a cada ctrl-C causando loop infinito.
-
 ---
 
 ## 🔤 Parsing — ordem e por quê
 
 ```
-string → lexer → tokens → expand → remove_quotes → parser → t_cmd
+string → lexer → tokens → expand → remove_quotes → parser → remove_quotes(args/redirs) → t_cmd
 ```
 
-| Passo           | O que faz                          | Por quê nessa ordem               |
-|-----------------|------------------------------------|-----------------------------------|
-| lexer           | string → tokens, respeita aspas    | aspas precisam estar intactas     |
-| expand_tokens   | $VAR/$? in-place nos tokens        | aspas controlam o que expande     |
-| remove_quotes   | remove `'` e `"` dos valores       | parser recebe argumentos limpos   |
-| parser          | tokens → t_cmd list                | já tem os valores finais          |
+| Passo                    | O que faz                          | Por quê nessa ordem               |
+|--------------------------|------------------------------------|------------------------------------|
+| lexer                    | string → tokens, respeita aspas    | aspas precisam estar intactas     |
+| expand_tokens            | $VAR/$? in-place nos tokens        | aspas controlam o que expande     |
+| remove_quotes_from_tokens| remove `'` e `"` dos valores       | parser recebe argumentos limpos   |
+| parser                   | tokens → t_cmd list                | já tem os valores finais          |
+| remove_quotes_from_args  | limpa aspas dos args nos t_cmd     | args prontos para execve          |
+| remove_quotes_from_redirs| limpa aspas dos filenames           | exceto heredocs (tratados à parte)|
 
 ### Tipos de token
 
@@ -123,6 +138,12 @@ string → lexer → tokens → expand → remove_quotes → parser → t_cmd
 | `$NAOEXISTE`   | ✅        | `""` (vazio)  |
 | `"valor: $?"`  | ✅        | `valor: 0`    |
 
+### Heredoc e expansão
+| Delimitador | Expande dentro? | Exemplo                |
+|-------------|-----------------|------------------------|
+| `<< EOF`    | ✅ sim          | `$VAR` → valor         |
+| `<< 'EOF'`  | ❌ não          | `$VAR` → literal       |
+
 ---
 
 ## 🧰 Builtins — resumo (copiar como tabela)
@@ -130,7 +151,7 @@ string → lexer → tokens → expand → remove_quotes → parser → t_cmd
 | Builtin  | Detalhe importante                                    |
 |----------|-------------------------------------------------------|
 | `echo`   | `-n` suprime newline; múltiplos `-n` aceitos          |
-| `cd`     | sem arg → `$HOME`; atualiza `PWD` e `OLD_PWD`         |
+| `cd`     | sem arg → `$HOME`; atualiza `PWD` e `OLDPWD`          |
 | `pwd`    | `getcwd()` diretamente                               |
 | `export` | sem arg → `declare -x KEY="VALUE"` para cada var      |
 | `unset`  | var inexistente → silencioso (não é erro)             |
@@ -167,6 +188,10 @@ Pai fecha todos os fds após cada fork.
 Se pai não fechar pipe1[1], grep nunca recebe EOF.
 ```
 
+### Arquivos do pipeline
+- `executor_pipeline.c` — orquestração: `fork_pipeline`, `wait_all`, `execute_pipeline`
+- `executor_pipeline_child.c` — processo filho: `setup_child_fds`, `child_process`
+
 ---
 
 ## 🗂️ Redirecionamentos — como funcionam
@@ -176,11 +201,17 @@ Se pai não fechar pipe1[1], grep nunca recebe EOF.
 | `<`      | `redir_in()`  | `open(O_RDONLY)` + `dup2(fd, STDIN)`        |
 | `>`      | `redir_out()` | `open(O_WRONLY\|O_CREAT\|O_TRUNC)` + dup2  |
 | `>>`     | `redir_out()` | `open(O_WRONLY\|O_CREAT\|O_APPEND)` + dup2 |
-| `<<`     | `redir_heredoc()` | `pipe()` + readline até delimitador    |
+| `<<`     | `collect_heredoc()` | `pipe()` + readline até delimitador   |
 
-**Heredoc salva orig_stdin porque:**
-múltiplos heredocs consecutivos precisam ler do terminal,
-não do pipe deixado pelo heredoc anterior.
+### Heredocs — fluxo completo
+```
+collect_all_heredocs()        ← antes de qualquer fork
+  └── process_heredoc_redir()
+        ├── has_quotes()      ← delimitador com aspas? desativa expansão
+        ├── remove_quotes()   ← limpa aspas do delimitador
+        └── collect_heredoc() ← readline loop + pipe
+              └── write_heredoc_line() ← expande $VAR se necessário
+```
 
 ---
 
@@ -200,8 +231,8 @@ Cobre as respostas e testa uma por vez:
 **O que env_to_array() faz e por quê existe?**
 → Converte `t_env` para `char**` no formato `"KEY=VALUE"`. O execve não conhece nossa struct.
 
-**Por que setup_redirections salva orig_stdin?**
-→ Para heredocs consecutivos lerem do terminal, não do pipe do heredoc anterior.
+**Por que heredocs são coletados antes do fork?**
+→ Para que readline nunca execute dentro de um filho — evita leaks de "still reachable" quando Ctrl+C mata o filho.
 
 **O que acontece com ctrl-C com cat rodando?**
 → Pai tem SIG_IGN (setup_exec_signals). Filho tem SIG_DFL → morre. Pai detecta WIFSIGNALED → escreve `\n` → chama setup_signals().
@@ -218,44 +249,48 @@ Cobre as respostas e testa uma por vez:
 **O que faz `echo $?; echo $?`?**
 → Primeiro `echo $?` imprime o exit status do comando anterior. Segundo imprime `0` (o echo teve sucesso).
 
+**O que são os event hooks do readline?**
+→ Funções chamadas periodicamente por readline. Verificam `g_signal == 130` e setam `rl_done = 1` para forçar retorno imediato.
+
 ---
 
 ## ✅ Checklist final de avaliação
 
 ```
 Funcionalidade:
-[ ] Prompt + readline funciona
-[ ] Histórico (seta ↑)
-[ ] Executa binários via PATH
-[ ] Caminhos absolutos e relativos
-[ ] Pipes simples e múltiplos
-[ ] < > >> funcionam
-[ ] Heredoc << funciona
-[ ] $VAR expande
-[ ] $? atualiza corretamente
-[ ] '' bloqueia expansão
-[ ] "" permite expansão de $
+[x] Prompt + readline funciona
+[x] Histórico (seta cima)
+[x] Executa binários via PATH
+[x] Caminhos absolutos e relativos
+[x] Pipes simples e múltiplos
+[x] < > >> funcionam
+[x] Heredoc << funciona
+[x] $VAR expande
+[x] $? atualiza corretamente
+[x] '' bloqueia expansão
+[x] "" permite expansão de $
 
 Sinais:
-[ ] ctrl-C no prompt → nova linha (1 prompt só)
-[ ] ctrl-C com filho → mata filho, volta prompt
-[ ] ctrl-\ no prompt → não faz nada
-[ ] ctrl-\ com filho → Quit (core dumped)
-[ ] ctrl-D → sai com "exit"
+[x] ctrl-C no prompt → nova linha (1 prompt só)
+[x] ctrl-C com filho → mata filho, volta prompt
+[x] ctrl-\ no prompt → não faz nada
+[x] ctrl-\ com filho → Quit (core dumped)
+[x] ctrl-D → sai com "exit"
+[x] ctrl-C no heredoc → cancela heredoc, volta prompt
 
 Builtins:
-[ ] echo, echo -n
-[ ] cd, cd sem arg, cd caminho inválido
-[ ] pwd
-[ ] export com e sem arg
-[ ] unset
-[ ] env
-[ ] exit com código, exit abc, exit 1 2
+[x] echo, echo -n
+[x] cd, cd sem arg, cd caminho inválido
+[x] pwd
+[x] export com e sem arg
+[x] unset
+[x] env
+[x] exit com código, exit abc, exit 1 2
 
 Erros:
-[ ] Mensagens no formato correto → stderr
-[ ] exit status correto (127, 126, etc.)
-[ ] Sintaxe inválida exibe erro
+[x] Mensagens no formato correto → stderr
+[x] exit status correto (127, 126, etc.)
+[x] Sintaxe inválida exibe erro
 
 Build:
 [ ] make re sem warnings

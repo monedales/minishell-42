@@ -22,7 +22,10 @@ while (running):
     line = readline("minishell$ ")
     tokens = lexer(line)
     expand(tokens)
+    remove_quotes(tokens)
     cmd_list = parser(tokens)
+    remove_quotes_from_args(cmd_list)
+    remove_quotes_from_redirs(cmd_list)
     execute(cmd_list)
 ```
 
@@ -135,9 +138,17 @@ linha 2
 EOF
 ```
 
-O `setup_redirections()` salva o stdin original antes de processar
-para que heredocs consecutivos leiam do terminal, não de um pipe
-anterior.
+**Coleta no pai**: Todos os heredocs são coletados em `collect_all_heredocs()`
+ANTES de qualquer fork. Isso evita que readline execute dentro de um
+processo filho, prevenindo leaks de "still reachable".
+
+**Expansão no heredoc**: Se o delimitador NÃO tem aspas (`<< EOF`),
+variáveis como `$VAR` são expandidas dentro do heredoc. Se tem aspas
+(`<< 'EOF'`), o conteúdo é literal.
+
+**Sinais no heredoc**: `setup_heredoc_signals()` instala um handler
+específico (`handle_sigint_heredoc`) e o `heredoc_event_hook` para que
+Ctrl+C interrompa a leitura e retorne ao prompt.
 
 ---
 
@@ -207,11 +218,17 @@ Sinais são notificações assíncronas enviadas a processos.
 | SIGINT  | 2      | Ctrl-C| Termina o processo        |
 | SIGQUIT | 3      | Ctrl-\| Termina + core dump       |
 
-### Três modos no minishell
+### Quatro modos no minishell
 
 **Modo prompt (pai sem filho):**
-- SIGINT → handler customizado: nova linha + redesenha prompt
+- SIGINT → `handle_sigint`: `g_signal=130` + nova linha + limpa readline
 - SIGQUIT → ignorado (SIG_IGN)
+- `prompt_event_hook` → verifica `g_signal`, seta `rl_done=1`
+
+**Modo heredoc (lendo input de heredoc):**
+- SIGINT → `handle_sigint_heredoc`: `g_signal=130` + `rl_done=1`
+- SIGQUIT → ignorado (SIG_IGN)
+- `heredoc_event_hook` → verifica `g_signal`, seta `rl_done=1`
 
 **Modo execução (pai com filho rodando):**
 - SIGINT → ignorado (SIG_IGN) — o filho trata
@@ -226,10 +243,11 @@ O filho herda os handlers do pai. Se o pai tem SIGQUIT = SIG_IGN,
 o filho também ignora — e `ctrl-\` não funcionaria no `cat`.
 `setup_child_signals()` reseta para SIG_DFL logo após o fork.
 
-### SA_RESTART
-Com SA_RESTART no handler do prompt, o kernel reinicia a syscall
-(readline) automaticamente quando o sinal é tratado. Sem ele,
-o readline retornaria NULL no macOS a cada ctrl-C, causando loop.
+### Event hooks do readline
+Em vez de usar `SA_RESTART`, o minishell usa **event hooks** (`rl_event_hook`)
+que o readline chama periodicamente. O hook verifica se `g_signal == 130`
+e seta `rl_done = 1` para forçar readline a retornar. Isso permite uma
+interrupção limpa tanto no prompt quanto no heredoc.
 
 ---
 
@@ -284,6 +302,7 @@ readline()  → string heap       → free(line) no final do loop
 lexer()     → t_token list      → free_tokens() após o parser
 expander()  → modifica in-place  → sem malloc novo
 parser()    → t_cmd + t_redir   → free_cmd_list() após executor
+heredocs    → pipe fds          → fechados durante free_cmd_list
 executor()  → fork/execve       → processos filhos, não heap do pai
 ```
 

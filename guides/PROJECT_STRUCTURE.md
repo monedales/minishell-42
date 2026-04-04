@@ -25,21 +25,24 @@ minishell/
 │   │   ├── parser_utils.c    # Helpers do parser (add_arg, add_redir, etc)
 │   │   ├── parser_free.c     # Free de tokens/cmds + remove_quotes_from_tokens
 │   │   ├── quotes.c          # Máquina de estados de aspas
+│   │   ├── quotes_utils.c    # remove_quotes, remove_quotes_from_args/redirs
 │   │   └── tokens.c          # Criação e free de tokens
 │   │
 │   ├── env/                  # Variáveis de ambiente
-│   │   ├── env_init.c        # init_env (envp → t_env list)
+│   │   ├── env_init.c        # init_env (envp → t_env list) + free_env
 │   │   ├── env_get.c         # get_env_value
 │   │   ├── env_set.c         # set_env_value
 │   │   ├── env_unset.c       # unset_env_value
-│   │   └── env_utils.c       # env_to_array, print_env, free_env
+│   │   └── env_utils.c       # env_to_array, print_env, count_env_vars
 │   │
 │   ├── execution/            # Execução de comandos
-│   │   ├── executor.c        # Dispatcher + fork_pipeline + handle_signal_status
-│   │   ├── executor_simple.c # Comando único (fork + execve + wait_child)
-│   │   ├── executor_pipeline.c # Pipeline (child_process, wait_all)
-│   │   ├── path_finder.c     # Resolução do PATH
-│   │   ├── redirections.c    # redir_heredoc, apply_redir, setup_redirections
+│   │   ├── executor.c            # Dispatcher principal (execute_cmd_list)
+│   │   ├── executor_heredoc.c    # Coleta de heredocs antes do fork
+│   │   ├── executor_simple.c     # Comando único (fork + execve + wait_child)
+│   │   ├── executor_pipeline.c   # Pipeline: fork_pipeline + wait_all + execute_pipeline
+│   │   ├── executor_pipeline_child.c # Processo filho do pipeline (child_process)
+│   │   ├── path_finder.c        # Resolução do PATH
+│   │   ├── redirections.c       # collect_heredoc, apply_redir, setup_redirections
 │   │   └── redirections_utils.c # restore_fds, redir_in, redir_out
 │   │
 │   ├── builtins/             # Comandos built-in
@@ -53,8 +56,10 @@ minishell/
 │   │   └── builtin_exit.c    # exit
 │   │
 │   ├── signals/              # Tratamento de sinais
-│   │   └── signals.c         # setup_signals, setup_exec_signals,
-│   │                         # setup_child_signals, handle_sigint
+│   │   ├── signals.c         # setup_signals, setup_exec_signals,
+│   │   │                     # setup_child_signals, handle_sigint
+│   │   └── signals_hooks.c   # heredoc_event_hook, prompt_event_hook,
+│   │                         # handle_sigint_heredoc, setup_heredoc_signals
 │   │
 │   └── utils/                # Utilitários gerais
 │       ├── error_utils.c     # handle_error, exit_error
@@ -67,11 +72,11 @@ minishell/
 ## 📦 Estruturas de Dados
 
 ```c
-t_mini    // Estado global do shell (env, cmd_list, last_exit_status, running)
-t_env     // Nó da lista de variáveis de ambiente (key, value, prev, next)
-t_token   // Token do lexer (type, value, next)
-t_cmd     // Nó de comando (args, redirs, pid, next)
-t_redir   // Redirecionamento (type, file, next)
+t_mini      // Estado global do shell (env, cmd_list, last_exit_status, running)
+t_env       // Nó da lista de variáveis de ambiente (key, value, prev, next)
+t_token     // Token do lexer (type, value, next)
+t_cmd       // Nó de comando (args, redirs, pid, next)
+t_redir     // Redirecionamento (type, file, fd, expand, next)
 t_exp_state // Estado interno do expander (result, i, quote_state)
 ```
 
@@ -104,6 +109,6 @@ t_exp_state // Estado interno do expander (result, i, quote_state)
 
 - **Memory leaks**: `readline()` causa leaks internos — não são de responsabilidade do projeto. Todo o resto deve ser liberado corretamente.
 - **File descriptors**: Sempre feche os FDs que abrir.
-- **Sinais**: Três modos — prompt interativo, filho rodando, child process.
-- **Norminette**: Rodar antes de cada commit. Norminette está em `~/Library/Python/3.9/bin/norminette`.
-- **Uma variável global**: Apenas `g_signal` (volatile sig_atomic_t) é permitida.
+- **Sinais**: Quatro modos — prompt interativo, heredoc, pai com filho rodando, child process.
+- **Norminette**: Rodar antes de cada commit.
+- **Uma variável global**: Apenas `g_signal` (volatile sig_atomic_t) é permitida — definida em `signals.c`, declarada `extern` em `minishell.h`.
