@@ -62,6 +62,7 @@ PARSING_SRC = lexer.c \
               parser_utils.c \
               parser_free.c \
               quotes.c \
+              quotes_utils.c \
 			  tokens.c
 
 # Environment (Pessoa A)
@@ -73,8 +74,10 @@ ENV_SRC = env_init.c \
 
 # Execution (Pessoa B)
 EXEC_SRC = executor.c \
+           executor_heredoc.c \
            executor_simple.c \
            executor_pipeline.c \
+           executor_pipeline_child.c \
            path_finder.c \
            redirections.c \
            redirections_utils.c
@@ -90,7 +93,8 @@ BUILTIN_SRC = builtin_checker.c \
               builtin_exit.c
 
 # Signals (Pessoa B)
-SIGNALS_SRC = signals.c
+SIGNALS_SRC = signals.c \
+              signals_hooks.c
 
 # Utils (Ambos)
 UTILS_SRC = error_utils.c \

@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/03/24 22:54:47 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/04 15:20:10 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,57 +46,6 @@ static int	init_minishell(t_mini *mini, char **envp)
 	set_env_value(&mini->env, "SHLVL", new_lvl);
 	free(new_lvl);
 	return (SUCCESS);
-}
-
-static void	remove_quotes_from_redirs(t_cmd *cmd_list)
-{
-	t_cmd	*cmd;
-	t_redir	*redir;
-	char	*clean;
-
-	cmd = cmd_list;
-	while (cmd)
-	{
-		redir = cmd->redirs;
-		while (redir)
-		{
-			if (redir->type != TKN_REDIR_HEREDOC && redir->file)
-			{
-				clean = remove_quotes(redir->file);
-				if (clean)
-				{
-					free(redir->file);
-					redir->file = clean;
-				}
-			}
-			redir = redir->next;
-		}
-		cmd = cmd->next;
-	}
-}
-
-static void	remove_quotes_from_args(t_cmd *cmd_list)
-{
-	t_cmd	*cmd;
-	char	*clean;
-	int		i;
-
-	cmd = cmd_list;
-	while (cmd)
-	{
-		i = 0;
-		while (cmd->args && cmd->args[i])
-		{
-			clean = remove_quotes(cmd->args[i]);
-			if (clean)
-			{
-				free(cmd->args[i]);
-				cmd->args[i] = clean;
-			}
-			i++;
-		}
-		cmd = cmd->next;
-	}
 }
 
 /**
@@ -149,7 +98,7 @@ static void	process_line(char *line, t_mini *mini)
 static void	repl_loop(t_mini *mini)
 {
 	char	*line;
-	
+
 	while (mini->running)
 	{
 		line = readline("minishell$ ");

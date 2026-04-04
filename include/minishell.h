@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/04/04 14:51:46 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/04 15:16:20 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,13 +163,16 @@ void		add_cmd(t_cmd **head, t_cmd *new);
 void		free_redirs(t_redir *redirs);
 void		free_cmd_list(t_cmd *cmd_list);
 void		ensure_cmd(t_cmd **cmd_list, t_cmd **current_cmd);
-void		remove_quotes_from_tokens(t_token *tokens);
+
  
 // Quote handling
 char		*remove_quotes(char *str);
 int			is_in_quotes(char *str, int pos, t_quote_state *state);
 int			validate_quotes(char *str);
 void		update_quote_state(char c, t_quote_state *state);
+void		remove_quotes_from_tokens(t_token *tokens);
+void		remove_quotes_from_redirs(t_cmd *cmd_list);
+void		remove_quotes_from_args(t_cmd *cmd_list);
  
 /* ========================================================================== */
 /*                           ENVIRONMENT (Pessoa A)                           */

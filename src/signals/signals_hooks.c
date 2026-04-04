@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/04 14:45:55 by mona              #+#    #+#             */
-/*   Updated: 2026/04/04 14:59:11 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/04 15:12:14 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ int	prompt_event_hook(void)
 		rl_done = 1;
 	return (0);
 }
-
 
 /**
  * @brief Handler for SIGINT (Ctrl+C) during heredoc input.

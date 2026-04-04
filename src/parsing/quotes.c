@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/03/26 21:52:24 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/04 15:14:51 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,45 +57,6 @@ int	is_in_quotes(char *str, int pos, t_quote_state *state)
 		i++;
 	}
 	return (*state != QUOTE_NONE);
-}
-
-/**
- * @brief Removes quotes from a string
- *
- * Traverses the string tracking quote state and copies characters
- * to a new string, except delimiter quotes. Content inside quotes
- * is kept intact. This function is called AFTER expansion.
- *
- * @param str String with quotes
- * @return New string without quotes (must be freed after use)
- */
-char	*remove_quotes(char *str)
-{
-	char			*result;
-	t_quote_state	state;
-	size_t			i;
-	size_t			j;
-
-	if (!str)
-		return (NULL);
-	result = malloc(sizeof(char) * ft_strlen(str) + 1);
-	if (!result)
-		return (NULL);
-	state = QUOTE_NONE;
-	i = 0;
-	j = 0;
-	while (str[i])
-	{
-		if ((str[i] == '"' && (state == QUOTE_NONE || state == QUOTE_DOUBLE))
-			|| (str[i] == '\'' && (state == QUOTE_NONE
-					|| state == QUOTE_SINGLE)))
-			update_quote_state(str[i], &state);
-		else
-			result[j++] = str[i];
-		i++;
-	}
-	result[j] = '\0';
-	return (result);
 }
 
 /**
