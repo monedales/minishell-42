@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/13 00:00:00 by maria-ol          #+#    #+#             */
-/*   Updated: 2026/03/24 21:39:58 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/03 14:15:32 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,8 +75,8 @@ void	free_redirs(t_redir *redirs)
 	while (redirs != NULL)
 	{
 		tmp = redirs->next;
-        if (redirs->fd >= 0)
-           close(redirs->fd);
+		if (redirs->fd >= 0)
+			close(redirs->fd);
 		free(redirs->file);
 		free(redirs);
 		redirs = tmp;

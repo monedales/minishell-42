@@ -6,7 +6,7 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/26 19:48:35 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/03 14:13:27 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,10 +91,7 @@ void	child_process(t_cmd *cmd, int prev_fd, int *pipefd, t_mini *mini)
 	if (setup_redirections(cmd->redirs) == ERROR)
 		code = 1;
 	else
-	{
-
 		code = exec_pipeline_cmd(cmd, mini);
-	}
 	free_cmd_list(mini->cmd_list);
 	free_env(mini->env);
 	exit(code);

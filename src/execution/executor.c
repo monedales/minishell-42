@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   executor.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maria-ol <maria-ol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/12 21:04:20 by maria-ol         ###   ########.fr       */
+/*   Updated: 2026/04/03 14:19:54 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
- 
+
 #include "../../include/minishell.h"
- 
+
 /**
  * @brief Counts the number of commands in the pipeline list.
  * 
@@ -22,7 +22,7 @@ static int	count_cmds(t_cmd *cmd_list)
 {
 	int		count;
 	t_cmd	*current;
- 
+
 	count = 0;
 	current = cmd_list;
 	while (current)
@@ -32,7 +32,7 @@ static int	count_cmds(t_cmd *cmd_list)
 	}
 	return (count);
 }
- 
+
 /**
  * @brief Executes a builtin in the parent process with redirections.
  * 
@@ -50,7 +50,7 @@ static int	exec_builtin_parent(t_cmd *cmd, t_mini *mini)
 	int	saved_in;
 	int	saved_out;
 	int	ret;
- 
+
 	saved_in = dup(STDIN_FILENO);
 	saved_out = dup(STDOUT_FILENO);
 	if (setup_redirections(cmd->redirs) == ERROR)
@@ -127,7 +127,7 @@ int	collect_all_heredocs(t_cmd *cmd_list, t_mini *mini)
 	}
 	return (SUCCESS);
 }
- 
+
 int	execute_cmd_list(t_cmd *cmd_list, t_mini *mini)
 {
 	if (!cmd_list || !cmd_list->args || !cmd_list->args[0])
@@ -149,7 +149,7 @@ int	execute_cmd_list(t_cmd *cmd_list, t_mini *mini)
 	}
 	return (execute_pipeline(cmd_list, mini));
 }
- 
+
 /**
  * @brief Updates last_status and prints message based on signal received.
  *
@@ -167,7 +167,7 @@ void	handle_signal_status(int status, int *last_status)
 	else if (WTERMSIG(status) == SIGQUIT)
 		write(STDERR_FILENO, "Quit (core dumped)\n", 19);
 }
- 
+
 /**
  * @brief Forks all child processes in the pipeline and connects pipes.
  *
@@ -184,7 +184,7 @@ int	fork_pipeline(t_cmd *cmd_list, t_mini *mini)
 	t_cmd	*cmd;
 	int		prev_fd;
 	int		pipefd[2];
- 
+
 	cmd = cmd_list;
 	prev_fd = -1;
 	while (cmd)

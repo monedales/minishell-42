@@ -6,10 +6,10 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/31 00:00:00 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/03 14:18:34 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
- 
+
 #include "../../include/minishell.h"
 
 static int	write_heredoc_line(char *line, int fd, int expand, t_mini *mini)
@@ -83,27 +83,27 @@ int	collect_heredoc(char *delimiter, int expand, t_mini *mini)
  * @param redir The redirection node to apply.
  * @return SUCCESS or ERROR.
  */
-static int  apply_redir(t_redir *redir)
+static int	apply_redir(t_redir *redir)
 {
-    if (redir->type == TKN_REDIR_IN)
-        return (redir_in(redir->file));
-    if (redir->type == TKN_REDIR_OUT)
-        return (redir_out(redir->file, FALSE));
-    if (redir->type == TKN_REDIR_APPEND)
-        return (redir_out(redir->file, TRUE));
-    if (redir->type == TKN_REDIR_HEREDOC)
-    {
-        if (redir->fd < 0)
-            return (ERROR);
-        if (dup2(redir->fd, STDIN_FILENO) == -1)
-            return (ERROR);
-        close(redir->fd);
-        redir->fd = -1;
-        return (SUCCESS);
-    }
-    return (SUCCESS);
+	if (redir->type == TKN_REDIR_IN)
+		return (redir_in(redir->file));
+	if (redir->type == TKN_REDIR_OUT)
+		return (redir_out(redir->file, FALSE));
+	if (redir->type == TKN_REDIR_APPEND)
+		return (redir_out(redir->file, TRUE));
+	if (redir->type == TKN_REDIR_HEREDOC)
+	{
+		if (redir->fd < 0)
+			return (ERROR);
+		if (dup2(redir->fd, STDIN_FILENO) == -1)
+			return (ERROR);
+		close(redir->fd);
+		redir->fd = -1;
+		return (SUCCESS);
+	}
+	return (SUCCESS);
 }
- 
+
 /**
  * @brief Applies all redirections of a command in list order.
  *
@@ -113,14 +113,13 @@ static int  apply_redir(t_redir *redir)
  * @param redirs Head of the redirection linked list.
  * @return SUCCESS if all redirections applied, ERROR otherwise.
  */
-int setup_redirections(t_redir *redirs)
+int	setup_redirections(t_redir *redirs)
 {
-    while (redirs)
-    {
-        if (apply_redir(redirs) == ERROR)
-            return (ERROR);
-        redirs = redirs->next;
-    }
-    return (SUCCESS);
+	while (redirs)
+	{
+		if (apply_redir(redirs) == ERROR)
+			return (ERROR);
+		redirs = redirs->next;
+	}
+	return (SUCCESS);
 }
-

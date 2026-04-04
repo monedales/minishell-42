@@ -6,20 +6,13 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by pessoa-b          #+#    #+#             */
-/*   Updated: 2026/03/26 20:32:30 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/04 14:59:06 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-volatile sig_atomic_t   g_signal = 0;
-
-static int	heredoc_event_hook(void)
-{
-	if (g_signal == 130)
-		rl_done = 1;
-	return (0);
-}
+volatile sig_atomic_t	g_signal = 0;
 
 /**
  * @brief Handler for SIGINT (Ctrl+C) at the prompt.
@@ -33,39 +26,13 @@ static int	heredoc_event_hook(void)
  *
  * @param sig Signal number (unused)
  */
-void   handle_sigint(int sig)
+void	handle_sigint(int sig)
 {
-    (void)sig;
-    g_signal = 130;
-    write(STDOUT_FILENO, "\n", 1);
-    rl_replace_line("", 0);
-    rl_on_new_line();
-}
-
-void    handle_sigint_heredoc(int sig)
-{
-    (void)sig;
-    g_signal = 130;
-    write(STDOUT_FILENO, "\n", 1);
-    rl_replace_line("", 0);
-    rl_on_new_line();
-    rl_done = 1;
-}
-
-void	setup_heredoc_signals(void)
-{
-	struct sigaction	sa_int;
-	struct sigaction	sa_quit;
-
-	sa_int.sa_handler = handle_sigint_heredoc;
-	sa_int.sa_flags = 0;
-	sigemptyset(&sa_int.sa_mask);
-	sigaction(SIGINT, &sa_int, NULL);
-	sa_quit.sa_handler = SIG_IGN;
-	sa_quit.sa_flags = 0;
-	sigemptyset(&sa_quit.sa_mask);
-	sigaction(SIGQUIT, &sa_quit, NULL);
-	rl_event_hook = heredoc_event_hook;
+	(void)sig;
+	g_signal = 130;
+	write(STDOUT_FILENO, "\n", 1);
+	rl_replace_line("", 0);
+	rl_on_new_line();
 }
 
 /**
@@ -77,24 +44,16 @@ void	setup_heredoc_signals(void)
  * The child itself handles SIGINT via SIG_DFL (setup_child_signals).
  * After waitpid returns, call setup_signals() to restore normal behavior.
  */
-void    setup_exec_signals(void)
+void	setup_exec_signals(void)
 {
-    struct sigaction    sa;
+	struct sigaction	sa;
 
-    sa.sa_handler = SIG_IGN;
-    sa.sa_flags = 0;
-    sigemptyset(&sa.sa_mask);
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGQUIT, &sa, NULL);
+	sa.sa_handler = SIG_IGN;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
 }
-
-int	prompt_event_hook(void)
-{
-	if (g_signal == 130)
-		rl_done = 1;
-	return (0);
-}
-
 
 /**
  * @brief Configures signal handlers for interactive prompt mode.
@@ -103,26 +62,26 @@ int	prompt_event_hook(void)
  * - SIGINT  (Ctrl+C) : calls handle_sigint — prints newline, redraws prompt
  * - SIGQUIT (Ctrl+\) : ignored (SIG_IGN) — same behavior as bash at prompt
  *
- * SA_RESTART prevents syscalls like read (used by readline) from returning
- * EINTR when a signal is caught, avoiding spurious readline errors.
+ * Also installs prompt_event_hook so readline polls g_signal and
+ * returns promptly when Ctrl+C is pressed.
  *
  * Should be called at startup and after each child process finishes,
  * to restore prompt-mode behavior.
  */
-void    setup_signals(void)
+void	setup_signals(void)
 {
-    struct sigaction    sa_int;
-    struct sigaction    sa_quit;
+	struct sigaction	sa_int;
+	struct sigaction	sa_quit;
 
-    sa_int.sa_handler = handle_sigint;
-    sa_int.sa_flags = 0;
-    sigemptyset(&sa_int.sa_mask);
-    sigaction(SIGINT, &sa_int, NULL);
-    sa_quit.sa_handler = SIG_IGN;
-    sa_quit.sa_flags = 0;
-    sigemptyset(&sa_quit.sa_mask);
-    sigaction(SIGQUIT, &sa_quit, NULL);
-   	rl_event_hook = prompt_event_hook;
+	sa_int.sa_handler = handle_sigint;
+	sa_int.sa_flags = 0;
+	sigemptyset(&sa_int.sa_mask);
+	sigaction(SIGINT, &sa_int, NULL);
+	sa_quit.sa_handler = SIG_IGN;
+	sa_quit.sa_flags = 0;
+	sigemptyset(&sa_quit.sa_mask);
+	sigaction(SIGQUIT, &sa_quit, NULL);
+	rl_event_hook = prompt_event_hook;
 }
 
 /**
@@ -136,14 +95,13 @@ void    setup_signals(void)
  *
  * Must be called in every child process (simple cmd and pipeline).
  */
-void    setup_child_signals(void)
+void	setup_child_signals(void)
 {
-    struct sigaction    sa;
+	struct sigaction	sa;
 
-    sa.sa_handler = SIG_DFL;
-    sa.sa_flags = 0;
-    sigemptyset(&sa.sa_mask);
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGQUIT, &sa, NULL);
+	sa.sa_handler = SIG_DFL;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
 }
-
