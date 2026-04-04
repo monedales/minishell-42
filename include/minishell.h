@@ -6,13 +6,13 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/04/04 15:16:20 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/04 15:36:17 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
- 
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
@@ -26,20 +26,20 @@
 # include <readline/readline.h>
 # include <readline/history.h>
 # include "../libraries/libft/libft.h"
- 
+
 /* ========================================================================== */
 /*                                  DEFINES                                   */
 /* ========================================================================== */
- 
+
 # define SUCCESS 0
 # define ERROR -1
 # define TRUE 1
 # define FALSE 0
- 
+
 /* ========================================================================== */
 /*                                   ENUMS                                    */
 /* ========================================================================== */
- 
+
 // Token types
 typedef enum e_token_type
 {
@@ -51,7 +51,7 @@ typedef enum e_token_type
 	TKN_REDIR_HEREDOC,	// <<
 	TOKEN_EOF
 }	t_token_type;
- 
+
 // Quote states
 typedef enum e_quote_state
 {
@@ -59,7 +59,7 @@ typedef enum e_quote_state
 	QUOTE_SINGLE,
 	QUOTE_DOUBLE
 }	t_quote_state;
- 
+
 // Error types
 typedef enum e_error
 {
@@ -75,11 +75,11 @@ typedef enum e_error
 	ERR_HOME_NOT_SET,
 	ERR_OLDPWD_NOT_SET
 }	t_error;
- 
+
 /* ========================================================================== */
 /*                                 STRUCTURES                                 */
 /* ========================================================================== */
- 
+
 // Environment variable node
 typedef struct s_env
 {
@@ -88,7 +88,7 @@ typedef struct s_env
 	struct s_env	*prev;
 	struct s_env	*next;
 }	t_env;
- 
+
 // Token node
 typedef struct s_token
 {
@@ -96,7 +96,7 @@ typedef struct s_token
 	char			*value;
 	struct s_token	*next;
 }	t_token;
- 
+
 // Redirection node
 typedef struct s_redir
 {
@@ -106,6 +106,7 @@ typedef struct s_redir
 	int				expand;
 	struct s_redir	*next;
 }	t_redir;
+
 // Command node (every command's pipeline)
 typedef struct s_cmd
 {
@@ -114,7 +115,7 @@ typedef struct s_cmd
 	pid_t			pid;
 	struct s_cmd	*next;		// próximo comando (após pipe)
 }	t_cmd;
- 
+
 // Main minishell structure
 typedef struct s_mini
 {
@@ -123,7 +124,7 @@ typedef struct s_mini
 	int		last_exit_status;	// status do último comando ($?)
 	int		running;			// flag para manter o loop ativo
 }	t_mini;
- 
+
 // Expander loop state
 typedef struct s_exp_state
 {
@@ -131,18 +132,18 @@ typedef struct s_exp_state
 	int				i;
 	t_quote_state	state;
 }	t_exp_state;
- 
+
 /* ========================================================================== */
-/*                           PARSING (Pessoa A)                               */
+/*                           PARSING                                          */
 /* ========================================================================== */
- 
-// Lexer - Tokenization
+
+/* ============= Lexer - Tokenization ======================================= */
 t_token		*lexer(char *input);
 void		free_tokens(t_token *tokens);
 t_token		*create_token(t_token_type type, char *value);
 void		add_token(t_token **head, t_token *new_token);
- 
-// Expander - Variable expansion
+
+/* ============= Expander - Variable expansion ============================== */
 void		expand_tokens(t_token *tokens, t_mini *mini);
 int			is_single_quoted(char *str);
 int			is_var_start(char c, char next);
@@ -151,8 +152,8 @@ char		*append_char_to_buffer(char *base, char c);
 char		*extract_var_name(char *str, int *len);
 char		*expand_string(char *str, t_mini *mini);
 char		*expand_var_value(const char *var_name, t_mini *mini);
- 
-// Parser - Building command lists
+
+/* ============= Parser - Building command lists ============================ */
 t_cmd		*parser(t_token *tokens);
 t_cmd		*create_cmd_node(void);
 t_redir		*create_redir_node(t_token_type type, char *file, int expand);
@@ -164,8 +165,8 @@ void		free_redirs(t_redir *redirs);
 void		free_cmd_list(t_cmd *cmd_list);
 void		ensure_cmd(t_cmd **cmd_list, t_cmd **current_cmd);
 
- 
-// Quote handling
+/* ========================= QUOTE HANDLING ================================= */
+
 char		*remove_quotes(char *str);
 int			is_in_quotes(char *str, int pos, t_quote_state *state);
 int			validate_quotes(char *str);
@@ -173,11 +174,11 @@ void		update_quote_state(char c, t_quote_state *state);
 void		remove_quotes_from_tokens(t_token *tokens);
 void		remove_quotes_from_redirs(t_cmd *cmd_list);
 void		remove_quotes_from_args(t_cmd *cmd_list);
- 
+
 /* ========================================================================== */
-/*                           ENVIRONMENT (Pessoa A)                           */
+/*                           ENVIRONMENT                                      */
 /* ========================================================================== */
- 
+
 t_env		*init_env(char **envp);
 char		*get_env_value(t_env *env, const char *key);
 int			set_env_value(t_env **env, const char *key, const char *value);
@@ -186,11 +187,11 @@ void		free_env(t_env *env);
 char		**env_to_array(t_env *env);
 void		add_env_node(t_env **head, t_env *new);
 t_env		*create_env_node(const char *key, const char *value);
- 
+
 /* ========================================================================== */
-/*                          EXECUTION (Pessoa B)                              */
+/*                          EXECUTION 			                              */
 /* ========================================================================== */
- 
+
 int			execute_cmd_list(t_cmd *cmd_list, t_mini *mini);
 int			execute_simple_cmd(t_cmd *cmd, t_mini *mini);
 int			execute_pipeline(t_cmd *cmd_list, t_mini *mini);
@@ -209,11 +210,11 @@ void		exec_child(t_cmd *cmd, t_mini *mini);
 int			wait_child(pid_t pid, t_mini *mini);
 char		*get_path_value(t_env *env);
 void		print_env(t_env *env);
- 
+
 /* ========================================================================== */
-/*                           BUILTINS (Pessoa B)                              */
+/*                           BUILTINS.                                        */
 /* ========================================================================== */
- 
+
 int			is_builtin(char *cmd);
 int			execute_builtin(t_cmd *cmd, t_mini *mini);
 int			builtin_echo(char **args);
@@ -223,13 +224,13 @@ int			builtin_export(char **args, t_mini *mini);
 int			builtin_unset(char **args, t_mini *mini);
 int			builtin_env(t_mini *mini);
 int			builtin_exit(char **args, t_mini *mini);
- 
+
 /* ========================================================================== */
-/*                             SIGNALS (Pessoa B)                             */
+/*                             SIGNALS 			                              */
 /* ========================================================================== */
- 
+
 extern volatile sig_atomic_t	g_signal;
- 
+
 void		setup_signals(void);
 void		setup_child_signals(void);
 void		setup_exec_signals(void);
@@ -237,19 +238,18 @@ void		setup_heredoc_signals(void);
 void		handle_sigint(int sig);
 int			heredoc_event_hook(void);
 int			prompt_event_hook(void);
- 
+
 /* ========================================================================== */
 /*                                  UTILS                                     */
 /* ========================================================================== */
- 
+
 void		free_array(char **array);
 void		safe_free(void **ptr);
- 
+
 // Error handling
 int			handle_error(t_error error, char *cmd, char *detail);
 void		exit_error(t_error error, char *cmd, char *detail, int code);
 void		setup_heredoc_signals(void);
 void		handle_sigint_heredoc(int sig);
 
- 
 #endif
