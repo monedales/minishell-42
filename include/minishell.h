@@ -6,10 +6,10 @@
 /*   By: mona <mona@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 00:00:00 by mona              #+#    #+#             */
-/*   Updated: 2026/03/26 21:28:07 by mona             ###   ########.fr       */
+/*   Updated: 2026/04/04 14:51:46 by mona             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
- 
+
 #ifndef MINISHELL_H
 # define MINISHELL_H
  
@@ -230,7 +230,10 @@ extern volatile sig_atomic_t	g_signal;
 void		setup_signals(void);
 void		setup_child_signals(void);
 void		setup_exec_signals(void);
+void		setup_heredoc_signals(void);
 void		handle_sigint(int sig);
+int			heredoc_event_hook(void);
+int			prompt_event_hook(void);
  
 /* ========================================================================== */
 /*                                  UTILS                                     */
