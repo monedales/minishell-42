@@ -28,6 +28,29 @@ static int	write_heredoc_line(char *line, int fd, int expand, t_mini *mini)
 	return (SUCCESS);
 }
 
+static void	read_heredoc_lines(int write_fd, char *delim, int exp, t_mini *m)
+{
+	char	*line;
+
+	while (1)
+	{
+		line = readline("> ");
+		if (g_signal == 130)
+		{
+			safe_free((void **)&line);
+			break ;
+		}
+		if (!line
+			|| ft_strncmp(line, delim, ft_strlen(delim) + 1) == 0)
+		{
+			free(line);
+			break ;
+		}
+		write_heredoc_line(line, write_fd, exp, m);
+		free(line);
+	}
+}
+
 /**
  * @brief Collects heredoc input from the terminal and returns a pipe read fd.
  *
@@ -42,30 +65,13 @@ static int	write_heredoc_line(char *line, int fd, int expand, t_mini *mini)
  */
 int	collect_heredoc(char *delimiter, int expand, t_mini *mini)
 {
-	int		pipefd[2];
-	char	*line;
+	int	pipefd[2];
 
 	if (pipe(pipefd) == -1)
 		return (-1);
 	g_signal = 0;
 	setup_heredoc_signals();
-	while (1)
-	{
-		line = readline("> ");
-		if (g_signal == 130)
-		{
-			safe_free((void **)&line);
-			break ;
-		}
-		if (!line
-			|| ft_strncmp(line, delimiter, ft_strlen(delimiter) + 1) == 0)
-		{
-			free(line);
-			break ;
-		}
-		write_heredoc_line(line, pipefd[1], expand, mini);
-		free(line);
-	}
+	read_heredoc_lines(pipefd[1], delimiter, expand, mini);
 	close(pipefd[1]);
 	rl_event_hook = NULL;
 	setup_signals();
